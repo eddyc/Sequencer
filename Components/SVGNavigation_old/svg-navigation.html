@@ -1,0 +1,13 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html"></link>
+
+<dom-module id="svg-navigation">
+    <template>
+        <link rel="stylesheet" href="style.css"></link>
+        <svg id='svgParent' overflow='hidden' width$={{width}} height$={{height}}>
+            <g id='viewport' transform='scale(1, 1) rotate(0)' vector-effect="non-scaling-stroke" fill='none' stroke-width='1' stroke='black'>
+            </g>
+        </svg>
+    </template>
+</dom-module>
+
+<script src="SVGNavigation.js"></script>
