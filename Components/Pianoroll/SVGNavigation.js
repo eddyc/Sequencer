@@ -87,10 +87,10 @@ var SVGNavigation = function(svgParent, element, width, height, interactionCallb
         matrix = matrix.translate(alpha, beta);
         matrix.render = true;
         matrix = constrainMatrix(matrix);
-        self.interactionCallback(matrix);
 
         if (matrix.render === true) {
 
+            self.interactionCallback(matrix);
             var transform = svgParent.createSVGTransformFromMatrix(matrix);
             element.transform.baseVal.initialize(transform);
 
