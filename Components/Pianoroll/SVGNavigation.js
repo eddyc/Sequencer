@@ -27,11 +27,6 @@ var SVGNavigation = function(svgParent, element, width, height, interactionCallb
 
     function mousePosRelElement(elem, e) {
 
-        var style = getComputedStyle(elem,null);
-        var borderTop = style.getPropertyValue("border-top-width");
-        var borderLeft = style.getPropertyValue("border-left-width");
-        var paddingTop = style.getPropertyValue("padding-top");
-        var paddingLeft = style.getPropertyValue("padding-left");
         var offsetX = e.offsetX || e.layerX || 0;
         var offsetY = e.offsetY || e.layer || 0;
         var loc = {x: offsetX, y: offsetY};

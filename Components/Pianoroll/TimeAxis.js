@@ -8,16 +8,17 @@ var TimeAxis = function(svgParent, element, width, height) {
     var tickSpacing = startTickspacing;
     var tickHeight = 20;
 
-    var line = document.createElementNS("http://www.w3.org/2000/svg", 'line');
-    line.setAttribute('y1', tickHeight + 5);
-    line.setAttribute('y2', tickHeight + 5);
-    line.setAttribute('x1', 0);
-    line.setAttribute('x2', width);
-    element.appendChild(line);
+    // var line = document.createElementNS("http://www.w3.org/2000/svg", 'line');
+    // line.setAttribute('y1', tickHeight + 5);
+    // line.setAttribute('y2', tickHeight + 5);
+    // line.setAttribute('x1', 0);
+    // line.setAttribute('x2', width);
+    // element.appendChild(line);
 
     var rectangle = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
     rectangle.setAttribute('width', width);
-    rectangle.setAttribute('height', 20);
+    rectangle.setAttribute('height', 10);
+    rectangle.setAttribute('y', 25);
     rectangle.setAttribute('fill', 'black');
     element.appendChild(rectangle);
     for (var i = 0; i < tickCount; i++) {
