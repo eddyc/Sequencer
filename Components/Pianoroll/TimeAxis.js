@@ -1,31 +1,30 @@
-var TimeAxis = function(svgParent, element, width, height) {
+var TimeAxis = function(svgParent, element, width, height, timeAxisNavArea) {
 
+    
     var visibleOffsetY = 0;
     var quantisedZoom = 1;
     var ticks = [];
     var tickCount = 9;
     var startTickSpacing = width / (tickCount - 1);
     var tickSpacing = startTickSpacing;
-    var tickHeight = 20;
-
-    // var line = document.createElementNS("http://www.w3.org/2000/svg", 'line');
-    // line.setAttribute('y1', tickHeight + 5);
-    // line.setAttribute('y2', tickHeight + 5);
-    // line.setAttribute('x1', 0);
-    // line.setAttribute('x2', width);
-    // element.appendChild(line);
 
     var rectangle = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
+    rectangleHeight = 10;
+    rectangleY = timeAxisNavArea.height - rectangleHeight;
     rectangle.setAttribute('width', width);
-    rectangle.setAttribute('height', 10);
-    rectangle.setAttribute('y', 25);
+    rectangle.setAttribute('height',rectangleHeight);
+    rectangle.setAttribute('y',rectangleY);
     rectangle.setAttribute('fill', 'black');
     element.appendChild(rectangle);
+
+
+    var tickY1 = timeAxisNavArea.height / 2;
+
     for (var i = 0; i < tickCount; i++) {
 
         var group = document.createElementNS("http://www.w3.org/2000/svg", 'g');
         var line = document.createElementNS("http://www.w3.org/2000/svg", 'line');
-        line.setAttribute('y1', tickHeight);
+        line.setAttribute('y1', tickY1);
         line.setAttribute('y2', height);
         line.setAttribute('vector-effect', 'inherit');
         element.appendChild(line);
@@ -53,7 +52,7 @@ var TimeAxis = function(svgParent, element, width, height) {
 
         var zoomX = matrix.a;
         var offsetY = matrix.e;
-        
+
         var scaledOffset = offsetY / zoomX;
 
         var modOffset = scaledOffset % tickSpacing;
@@ -62,8 +61,6 @@ var TimeAxis = function(svgParent, element, width, height) {
         if (quantisedOffset != visibleOffsetY) {
 
             visibleOffsetY = quantisedOffset;
-            // console.log("offset:%f", visibleOffsetY);
-            // console.log("offset:%f", offsetY);
         }
 
         var newQuantisedZoom = (Math.pow(2, Math.floor(Math.log(zoomX)/Math.log(2))));
@@ -75,7 +72,6 @@ var TimeAxis = function(svgParent, element, width, height) {
 
         tickSpacing = (startTickSpacing / quantisedZoom) * zoomX;
         tickStart = (offsetY - (offsetY % tickSpacing)) / tickSpacing;
-        console.log(tickStart);
 
         for (var i = 0; i < ticks.length; ++i) {
 
@@ -85,13 +81,5 @@ var TimeAxis = function(svgParent, element, width, height) {
             tick.text.innerHTML = tickText;
         }
     }
-
-
-
-    function draw(zoomX, offsetY) {
-
-
-
-    };
 
 };
