@@ -1,11 +1,17 @@
-var NoteArea = function(svgParent, element, width, height) {
+var NoteArea = function(noteAreaParent, element, noteAreaSize) {
+
+    noteAreaParent.style.position = 'absolute';
+    noteAreaParent.style.top = noteAreaSize.xOffset + 'px';
+    noteAreaParent.style.left = noteAreaSize.yOffset + 'px';
+    noteAreaParent.style.width = 'calc(100% - ' + (noteAreaSize.xOffset + 1) + 'px)';
+    noteAreaParent.style.height = 'calc(100% - ' + (noteAreaSize.yOffset + 1) + 'px)';
 
     var rectangle = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
-    var rectWidth = width / 8;
-    var rectHeight = 100;
-    var rectX = width / 8;
+    var rectWidth =  80;
+    var rectHeight = 80;
+    var rectX =  100;
     var rectY = 100;
-    rectangle.setAttribute('width', width / 8);
+    rectangle.setAttribute('width', rectWidth);
     rectangle.setAttribute('height',rectHeight);
     rectangle.setAttribute('x', rectX);
     rectangle.setAttribute('y', rectY);
@@ -17,7 +23,7 @@ var NoteArea = function(svgParent, element, width, height) {
 
     this.transform = function(matrix) {
 
-        var transform = svgParent.createSVGTransformFromMatrix(matrix);
+        var transform = noteAreaParent.createSVGTransformFromMatrix(matrix);
         element.transform.baseVal.initialize(transform);
         // var zoomX = matrix.a;
         // var zoomY = matrix.d;

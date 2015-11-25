@@ -1,3 +1,11 @@
-#svgParent {
+#NoteAreaParent {
+    border:1px solid black;
+    position:absolute;
+}
+
+#TimeAxisParent {
     border:1px solid black;
 }
+svg text::selection {
+     background: none;
+ }
