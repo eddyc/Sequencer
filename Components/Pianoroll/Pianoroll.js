@@ -25,8 +25,8 @@
             timeAxisNav.transform(matrix);
         }
 
-        var horizontalZoomSize = {xOffset:80, height:80};
-        var noteAreaSize = {xOffset:80, yOffset:80};
+        var horizontalZoomSize = {xOffset:80, height:40};
+        var noteAreaSize = {xOffset:80, yOffset:40};
 
         var resizableDiv = new ResizableDiv(rootDiv, resizableDivElement, 50, 50, resizableDivWidth, resizableDivHeight, onResize);
 

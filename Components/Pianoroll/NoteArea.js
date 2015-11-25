@@ -1,8 +1,8 @@
 var NoteArea = function(noteAreaParent, element, noteAreaSize) {
 
     noteAreaParent.style.position = 'absolute';
-    noteAreaParent.style.top = noteAreaSize.xOffset + 'px';
-    noteAreaParent.style.left = noteAreaSize.yOffset + 'px';
+    noteAreaParent.style.top = noteAreaSize.yOffset + 'px';
+    noteAreaParent.style.left = noteAreaSize.xOffset + 'px';
     noteAreaParent.style.width = 'calc(100% - ' + (noteAreaSize.xOffset + 1) + 'px)';
     noteAreaParent.style.height = 'calc(100% - ' + (noteAreaSize.yOffset + 1) + 'px)';
 

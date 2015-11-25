@@ -14,7 +14,9 @@ var TimeAxis = function(timeAxisParent, element, horizontalZoomSize, resizableDi
     var quantisedZoom = 1;
     var ticks = [];
     var tickCount = 4;
-    var startTickSpacing = width / (tickCount );
+    var minorTickCount = 3;
+    var startTickSpacing = width / tickCount;
+    var startMinorTickSpacing = startTickSpacing / (minorTickCount + 1);
 
     var offsetX = 0;
     var zoomX = 1;
@@ -36,7 +38,13 @@ var TimeAxis = function(timeAxisParent, element, horizontalZoomSize, resizableDi
 
         var tick = createTick();
         tick.text.innerHTML = i;
-        tick.group.setAttribute('transform', "translate(" + (i * startTickSpacing) + ", 0)")
+        tick.group.setAttribute('transform', "translate(" + (i * startTickSpacing) + ", 0)");
+
+        for (var j = 0; j < minorTickCount; j++) {
+
+            tick.minorTicks[j].setAttribute('transform', "translate(" + (j * startMinorTickSpacing + startMinorTickSpacing) + ", 0)");
+        }
+
         element.appendChild(tick.group);
         ticks.push(tick);
     }
@@ -44,11 +52,29 @@ var TimeAxis = function(timeAxisParent, element, horizontalZoomSize, resizableDi
 
     function createTick() {
 
+        function createMinorTicks(group) {
+
+            var minorTicks = [];
+            for (var i = 0; i < minorTickCount; i++) {
+
+                var line = document.createElementNS("http://www.w3.org/2000/svg", 'line');
+                line.setAttribute('y1', tickY1 + 5);
+                line.setAttribute('y2', height);
+                line.setAttribute('vector-effect', 'inherit');
+                line.setAttribute('stroke', 'rgba(0, 0, 0, 0.3)');
+                group.appendChild(line);
+                minorTicks.push(line);
+            }
+            return minorTicks;
+        }
+
         var group = document.createElementNS("http://www.w3.org/2000/svg", 'g');
         var line = document.createElementNS("http://www.w3.org/2000/svg", 'line');
         line.setAttribute('y1', tickY1);
         line.setAttribute('y2', height);
         line.setAttribute('vector-effect', 'inherit');
+        line.setAttribute('fill', 'black');
+
         element.appendChild(line);
 
         var text = document.createElementNS("http://www.w3.org/2000/svg", 'text');
@@ -60,8 +86,8 @@ var TimeAxis = function(timeAxisParent, element, horizontalZoomSize, resizableDi
         text.setAttribute('fill', 'black');
         group.appendChild(line);
         group.appendChild(text);
-
-        return {group:group, text:text, line:line};
+        var minorTicks = createMinorTicks(group);
+        return {group:group, text:text, line:line, minorTicks:minorTicks};
     }
 
     this.onResize = function(resizableElement) {
@@ -74,6 +100,11 @@ var TimeAxis = function(timeAxisParent, element, horizontalZoomSize, resizableDi
         for (var i = 0; i < tickCount; i++) {
 
             ticks[i].line.setAttribute('y2', height);
+
+            for (var j = 0; j < minorTickCount; ++j) {
+
+                ticks[i].minorTicks[j].setAttribute('y2', height);
+            }
         }
 
         var tickSpacing = getTickSpacing(zoomX);
@@ -123,9 +154,6 @@ var TimeAxis = function(timeAxisParent, element, horizontalZoomSize, resizableDi
     }
 
 
-    //
-
-
     this.transform = function(matrix) {
 
         zoomX = matrix.a;
@@ -144,30 +172,25 @@ var TimeAxis = function(timeAxisParent, element, horizontalZoomSize, resizableDi
     }
 
 
-    function redrawTickPositions_old(tickSpacing) {
-
-        var tickStart = ((offsetX - (offsetX % tickSpacing)) / tickSpacing);
-        console.log("offsetX = %f, tickSpacing = %f, tickStart = %f, offset % tickSpacing", offsetX, tickSpacing, tickStart, offsetX % tickSpacing);
-        for (var i = 0; i < ticks.length; ++i) {
-
-            var tick = ticks[i];
-            tick.group.setAttribute('transform', "translate(" + ((i - tickStart) * tickSpacing + offsetX) + ", 0)")
-            var tickText = Math.round(((i - tickStart) / quantisedZoom) * 1000000) / 1000000;
-            tick.text.innerHTML = tickText;
-        }
-    }
-
     function redrawTickPositions(tickSpacing) {
 
         var offsetModSpacing = offsetX % tickSpacing;
         offsetModSpacing = (offsetModSpacing >= 0) ? offsetModSpacing - tickSpacing : offsetModSpacing;
         var firstTickX = (offsetX - offsetModSpacing);
         var tickStart = firstTickX / tickSpacing;
+        var minorTickSpacing = tickSpacing / (minorTickCount + 1);
 
         for (var i = 0; i < ticks.length; ++i) {
 
             var tick = ticks[i];
-            tick.group.setAttribute('transform', "translate(" + ((i - tickStart) * tickSpacing + offsetX) + ", 0)")
+            var tickOffsetX = ((i - tickStart) * tickSpacing + offsetX);
+            tick.group.setAttribute('transform', "translate(" + tickOffsetX + ", 0)");
+
+            for (var j = 0; j < minorTickCount; ++j) {
+
+                tick.minorTicks[j].setAttribute('transform', "translate(" + (minorTickSpacing * (j + 1)) + ", 0)");
+            }
+
             var tickText = Math.round(((i - tickStart) / quantisedZoom) * 1000000) / 1000000;
             tick.text.innerHTML = tickText;
         }
