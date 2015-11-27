@@ -16,16 +16,16 @@ var ResizableDiv = function(rootElement, resizableElement, x, y, width, height, 
     setBounds(resizableElement, x,y,width,height);
 
     resizableElement.addEventListener('mousedown', onMouseDown);
-    resizableElement.addEventListener('mouseenter', function(event) {
-        var x = window.scrollX;
-        var y = window.scrollY;
-        window.onscroll=function(){window.scrollTo(x, y);};
-        console.log("mouseenter");
-    });
-    resizableElement.addEventListener('mouseleave', function(event) {
-        window.onscroll=function(){};
-        console.log("mouseleave");
-    });
+    // resizableElement.addEventListener('mouseenter', function(event) {
+        // var x = window.scrollX;
+        // var y = window.scrollY;
+        // window.onscroll=function(){window.scrollTo(x, y);};
+        // console.log("mouseenter");
+    // });
+    // resizableElement.addEventListener('mouseleave', function(event) {
+        // window.onscroll=function(){};
+        // console.log("mouseleave");
+    // });
 
     function setBounds(element, x, y, w, h) {
         element.style.left = x + 'px';
@@ -73,14 +73,23 @@ var ResizableDiv = function(rootElement, resizableElement, x, y, width, height, 
         var onBottomEdge = y >= b.height - MARGINS;
 
         if (onRightEdge && onBottomEdge || onLeftEdge && onTopEdge) {
+
             resizableElement.style.cursor = 'nwse-resize';
-        } else if (onRightEdge && onTopEdge || onBottomEdge && onLeftEdge) {
+        }
+        else if (onRightEdge && onTopEdge || onBottomEdge && onLeftEdge) {
+
             resizableElement.style.cursor = 'nesw-resize';
-        } else if (onRightEdge || onLeftEdge) {
+        }
+        else if (onRightEdge || onLeftEdge) {
+
             resizableElement.style.cursor = 'ew-resize';
-        } else if (onBottomEdge || onTopEdge) {
+        }
+        else if (onBottomEdge || onTopEdge) {
+
             resizableElement.style.cursor = 'ns-resize';
-        } else {
+        }
+        else {
+
             resizableElement.style.cursor = 'default';
         }
         return {b:b, x:x, y:y, onTopEdge:onTopEdge, onLeftEdge:onLeftEdge, onRightEdge:onRightEdge, onBottomEdge:onBottomEdge};

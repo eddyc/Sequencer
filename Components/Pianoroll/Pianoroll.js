@@ -16,12 +16,14 @@
         function onResize(resizableElement) {
 
             timeAxisNav.onResize(resizableElement);
+            frequencyAxisNav.onResize(resizableElement);
             interaction.onResize(resizableElement);
         }
 
         function onInteraction(matrix) {
 
             noteAreaNav.transform(matrix);
+            frequencyAxisNav.transform(matrix);
             timeAxisNav.transform(matrix);
         }
 
@@ -33,6 +35,8 @@
         var noteAreaNav = new NoteArea(self.$.NoteAreaParent, self.$.NoteAreaGroup, noteAreaSize);
 
         var timeAxisNav = new TimeAxis(self.$.TimeAxisParent, self.$.TimeAxisGroup, horizontalZoomSize,  resizableDivWidth, resizableDivHeight);
+
+        var frequencyAxisNav = new FrequencyAxis(self.$.FrequencyAxisParent, self.$.FrequencyAxisGroup, horizontalZoomSize,  resizableDivWidth, resizableDivHeight);
 
         var interaction = new Interaction(self.$.InteractionParent, resizableDivWidth, resizableDivHeight, horizontalZoomSize, noteAreaSize, onInteraction);
     }

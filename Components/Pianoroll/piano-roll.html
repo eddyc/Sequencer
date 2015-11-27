@@ -8,6 +8,10 @@
                     <g id='TimeAxisGroup' transform='scale(1, 1) rotate(0)' vector-effect="non-scaling-stroke" fill='none' stroke-width='1' stroke='black'>
                     </g>
                 </svg>
+                <svg id='FrequencyAxisParent' overflow='hidden'>
+                    <g id='FrequencyAxisGroup' transform='scale(1, 1) rotate(0)' vector-effect="non-scaling-stroke" fill='none' stroke-width='1' stroke='black'>
+                    </g>
+                </svg>
                 <svg id='NoteAreaParent' overflow='hidden'>
                     <g id='NoteAreaGroup' transform='scale(1, 1) rotate(0)' vector-effect="non-scaling-stroke" fill='none' stroke-width='1' stroke='black'>
                     </g>
@@ -19,8 +23,10 @@
 
     </template>
 </dom-module>
+<script src="HelperFunctions.js"></script>
 <script src="Interaction.js"></script>
 <script src="ResizableDiv.js"></script>
 <script src="TimeAxis.js"></script>
+<script src="FrequencyAxis.js"></script>
 <script src="NoteArea.js"></script>
 <script src="Pianoroll.js"></script>

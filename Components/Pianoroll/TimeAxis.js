@@ -2,16 +2,12 @@ var TimeAxis = function(timeAxisParent, element, horizontalZoomSize, resizableDi
 
     var timeAxisXOffset = horizontalZoomSize.xOffset;
     var timeAxisNavHeight = horizontalZoomSize.height;
-    timeAxisParent.style.position = 'absolute';
-    timeAxisParent.style.top = '-1px';
     timeAxisParent.style.left = timeAxisXOffset + 'px';
     timeAxisParent.style.width = 'calc(100% - ' + (timeAxisXOffset + 1) + 'px)';
-    timeAxisParent.style.height = '100%';
 
     var width = resizableDivWidth - timeAxisXOffset;
     var height = resizableDivHeight;
-    var visibleoffsetX = 0;
-    var quantisedZoom = 1;
+
     var ticks = [];
     var tickCount = 4;
     var minorTickCount = 3;
@@ -22,15 +18,11 @@ var TimeAxis = function(timeAxisParent, element, horizontalZoomSize, resizableDi
     var zoomX = 1;
     var quantisedZoom = 1;
 
-    var rectangle = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
     rectangleHeight = 10;
     rectangleY = timeAxisNavHeight - rectangleHeight;
-    rectangle.setAttribute('width', width);
-    rectangle.setAttribute('height',rectangleHeight);
-    rectangle.setAttribute('y',rectangleY);
-    rectangle.setAttribute('fill', 'black');
-    element.appendChild(rectangle);
 
+    var rectangle = createSVGElement('rect', {width:width, height:rectangleHeight, y:rectangleY, fill:'black'});
+    element.appendChild(rectangle);
 
     var tickY1 = timeAxisNavHeight / 2;
 
@@ -57,33 +49,19 @@ var TimeAxis = function(timeAxisParent, element, horizontalZoomSize, resizableDi
             var minorTicks = [];
             for (var i = 0; i < minorTickCount; i++) {
 
-                var line = document.createElementNS("http://www.w3.org/2000/svg", 'line');
-                line.setAttribute('y1', tickY1 + 5);
-                line.setAttribute('y2', height);
-                line.setAttribute('vector-effect', 'inherit');
-                line.setAttribute('stroke', 'rgba(0, 0, 0, 0.3)');
+                var line = createSVGElement('line', {y1:tickY1+5, y2:height, stroke:'rgba(0, 0, 0, 0.3)', 'vector-effect':'inherit'});
                 group.appendChild(line);
                 minorTicks.push(line);
             }
             return minorTicks;
         }
 
-        var group = document.createElementNS("http://www.w3.org/2000/svg", 'g');
-        var line = document.createElementNS("http://www.w3.org/2000/svg", 'line');
-        line.setAttribute('y1', tickY1);
-        line.setAttribute('y2', height);
-        line.setAttribute('vector-effect', 'inherit');
-        line.setAttribute('fill', 'black');
+        var group = createSVGElement('g');
+        var line = createSVGElement('line', {y1:tickY1, y2:height, 'vector-effect':'inherit'});
 
         element.appendChild(line);
 
-        var text = document.createElementNS("http://www.w3.org/2000/svg", 'text');
-        text.setAttribute('y', 17);
-        text.setAttribute('x', 2);
-        text.setAttribute('text-anchor', 'right');
-        text.setAttribute('font-family', 'Verdana');
-        text.setAttribute('font-size', '10');
-        text.setAttribute('fill', 'black');
+        var text = createSVGElement('text', {y:17, x:2, 'text-anchor':'right', 'font-family':'Verdana', 'font-size':10, fill:'black'});
         group.appendChild(line);
         group.appendChild(text);
         var minorTicks = createMinorTicks(group);
@@ -139,7 +117,6 @@ var TimeAxis = function(timeAxisParent, element, horizontalZoomSize, resizableDi
         }
     }
 
-
     function getTickSpacing(zoomX) {
 
         var newQuantisedZoom = (Math.pow(2, Math.floor(Math.log(zoomX)/Math.log(2))));
@@ -183,16 +160,18 @@ var TimeAxis = function(timeAxisParent, element, horizontalZoomSize, resizableDi
         for (var i = 0; i < ticks.length; ++i) {
 
             var tick = ticks[i];
-            var tickOffsetX = ((i - tickStart) * tickSpacing + offsetX);
+            // var tickOffsetX = ((i - tickStart) * tickSpacing + offsetX);
+            var tickOffsetX = (-firstTickX + offsetX);
             tick.group.setAttribute('transform', "translate(" + tickOffsetX + ", 0)");
 
-            for (var j = 0; j < minorTickCount; ++j) {
+            for (var j = 0, k = 1; j < minorTickCount; ++j, ++k) {
 
-                tick.minorTicks[j].setAttribute('transform', "translate(" + (minorTickSpacing * (j + 1)) + ", 0)");
+                tick.minorTicks[j].setAttribute('transform', "translate(" + (minorTickSpacing * k) + ", 0)");
             }
 
             var tickText = Math.round(((i - tickStart) / quantisedZoom) * 1000000) / 1000000;
             tick.text.innerHTML = tickText;
+            firstTickX -= tickSpacing;
         }
     }
 

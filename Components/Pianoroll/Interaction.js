@@ -7,10 +7,13 @@ var Interaction = function(interactionParent, width, height, horizontalZoomSize,
     var transformState = document.createElementNS("http://www.w3.org/2000/svg", 'g');
     interactionParent.appendChild(transformState);
 
-    var timeNavigationRect = createInteractionRectangle(horizontalZoomSize.xOffset, 0, width - horizontalZoomSize.xOffset, horizontalZoomSize.height, 'rgba(62, 227, 255, 0.26)')
-    var noteNavigationRect = createInteractionRectangle(horizontalZoomSize.xOffset, horizontalZoomSize.height, width - horizontalZoomSize.xOffset, height - horizontalZoomSize.height, 'rgba(2, 27, 255, 0.26)')
+    var timeNavigationRect = createInteractionRectangle(horizontalZoomSize.xOffset, 0, width - horizontalZoomSize.xOffset, horizontalZoomSize.height, 'rgba(62, 227, 255, 0.26)');
+    var freqNavigationRect = createInteractionRectangle(0, horizontalZoomSize.height, horizontalZoomSize.xOffset, height - horizontalZoomSize.height, 'rgba(150, 50, 10, 0.26)');
+
+    var noteNavigationRect = createInteractionRectangle(horizontalZoomSize.xOffset, horizontalZoomSize.height, width - horizontalZoomSize.xOffset, height - horizontalZoomSize.height, 'rgba(2, 27, 255, 0.26)');
 
     timeNavigationRect.addEventListener('wheel', onWheel);
+    freqNavigationRect.addEventListener('wheel', onWheel);
     noteNavigationRect.addEventListener('wheel', onWheel);
 
     this.onResize = function(resizableElement) {
@@ -20,6 +23,8 @@ var Interaction = function(interactionParent, width, height, horizontalZoomSize,
         timeNavigationRect.setAttribute('width', newWidth);
         noteNavigationRect.setAttribute('width', newWidth);
         noteNavigationRect.setAttribute('height', noteNavigationHeight);
+        freqNavigationRect.setAttribute('height', noteNavigationHeight);
+
 
 
     };
@@ -60,13 +65,28 @@ var Interaction = function(interactionParent, width, height, horizontalZoomSize,
 
             var zoomFactor = Math.pow(1.1, event.wheelDeltaY / 56);
             var d = matrix.d;
-            var f = matrix.f;
 
             matrix = matrix.scale(zoomFactor);
 
             focus.x -= (event.wheelDeltaX / 4) / matrix.a;
             matrix.d = d;
-            matrix.f = f;
+
+            pan(destination, focus, matrix)
+        }
+        else if (event.currentTarget === freqNavigationRect) {
+
+            var temp = mousePosition(freqNavigationRect, event);
+            destination.x = temp.x;
+            destination.y = temp.y - horizontalZoomSize.height;
+            var focus = destination.matrixTransform(matrix.inverse());
+
+            var zoomFactor = Math.pow(1.1, event.wheelDeltaX / 56);
+            var a = matrix.a;
+
+            matrix = matrix.scale(zoomFactor);
+
+            focus.y -= (event.wheelDeltaY / 4) / matrix.d;
+            matrix.a = a;
 
             pan(destination, focus, matrix)
         }
@@ -97,5 +117,13 @@ var Interaction = function(interactionParent, width, height, horizontalZoomSize,
 
         transformState.transform.baseVal.initialize(transform);
     }
+
+
+document.addEventListener('mousewheel', function(e){
+e.stopPropagation();
+e.preventDefault();
+e.cancelBubble = false;
+return false;
+}, false);
 
 }
