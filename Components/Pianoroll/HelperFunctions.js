@@ -1,11 +1,16 @@
+/* exported createSVGElement */
 function createSVGElement(elementType, attributes) {
 
-    var element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
+    "use strict";
 
-    for(property in attributes) {
+    const element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
+
+    for(let property in attributes) {
 
         element.setAttribute(property, attributes[property]);
     }
 
     return element;
-};
+}
+
+Math.fmod = function (a,b) { return Number((a - (Math.floor(a / b) * b)).toPrecision(8)); };

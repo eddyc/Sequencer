@@ -5,9 +5,21 @@
     <title>Sequencer</title>
     <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
     <link rel="import" href="Components/Pianoroll/piano-roll.html"></link>
+    <link rel="import" href="Components/Pianoroll/piano-roll-controls.html"></link>
 </head>
+<style>
+#Root {
+    position:absolute;
+    width:100%;
+    height:100%;
+    -webkit-user-select: none;
+}
+</style>
 <body>
-    <piano-roll width="1200" height="700"></piano-roll>
-
+    <div id="Root">
+        <piano-roll id="Pianoroll" width="800" height="600" x="130" y="10"></piano-roll>
+        <piano-roll-controls id="PianorollControls"></piano-roll-controls>
+        <script src="main.js" charset="utf-8"></script>
+    </div>
 </body>
 </html>

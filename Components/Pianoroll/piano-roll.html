@@ -1,32 +1,25 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html"></link>
+
 <dom-module id="piano-roll">
     <template>
-        <link rel="stylesheet" href="style.css"></link>
-        <div id="root">
-            <div id="resizable">
-                <svg id='TimeAxisParent' overflow='hidden'>
-                    <g id='TimeAxisGroup' transform='scale(1, 1) rotate(0)' vector-effect="non-scaling-stroke" fill='none' stroke-width='1' stroke='black'>
-                    </g>
-                </svg>
-                <svg id='FrequencyAxisParent' overflow='hidden'>
-                    <g id='FrequencyAxisGroup' transform='scale(1, 1) rotate(0)' vector-effect="non-scaling-stroke" fill='none' stroke-width='1' stroke='black'>
-                    </g>
-                </svg>
-                <svg id='NoteAreaParent' overflow='hidden'>
-                    <g id='NoteAreaGroup' transform='scale(1, 1) rotate(0)' vector-effect="non-scaling-stroke" fill='none' stroke-width='1' stroke='black'>
-                    </g>
-                </svg>
-                <svg id='InteractionParent' overflow='hidden'>
-                </svg>
-            </div>
+        <link rel="stylesheet" href="piano-roll.css"></link>
+        <div id='ResizableDiv'>
+            <svg id='TimeAxisParent'>
+                <g id='TimeAxisGroup' vector-effect="non-scaling-stroke" fill='none' stroke-width='1' stroke='black'></g>
+            </svg>
+            <svg id='FrequencyAxisParent'>
+                <g id='FrequencyAxisGroup' vector-effect="non-scaling-stroke" fill='none' stroke-width='1' stroke='black'></g>
+            </svg>
+            <svg id='InteractionParent'>
+                <g id='TransformState'></g>
+            </svg>
         </div>
-
     </template>
 </dom-module>
+
 <script src="HelperFunctions.js"></script>
-<script src="Interaction.js"></script>
 <script src="ResizableDiv.js"></script>
+<script src="Interaction.js"></script>
+<script src="Pianoroll.js"></script>
 <script src="TimeAxis.js"></script>
 <script src="FrequencyAxis.js"></script>
-<script src="NoteArea.js"></script>
-<script src="Pianoroll.js"></script>

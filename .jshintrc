@@ -1,0 +1,22 @@
+{
+    "esnext":true,
+    "newcap":false,
+    "unused":true,
+    "undef":true,
+    "varstmt":true,
+    "browser":true,
+    "devel":true,
+
+    "globals": {
+        "ResizableDiv": true,
+        "TimeAxis": true,
+        "FrequencyAxis": true,
+        "TimeSignatureControl": true,
+        "TimeRangeControl": true,
+        "Interaction": true,
+        "$": false,
+        "jQuery": false,
+        "Polymer": true,
+        "createSVGElement": true
+    }
+}

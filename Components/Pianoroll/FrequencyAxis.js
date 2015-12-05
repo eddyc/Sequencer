@@ -1,143 +1,152 @@
-var FrequencyAxis = function(frequencyAxisParent, element, horizontalZoomSize, resizableDivWidth, resizableDivHeight) {
+/* exported FrequencyAxis */
 
-    var frequencyAxisYOffset = horizontalZoomSize.height;
-    var frequencyAxisNavHeight = horizontalZoomSize.height;
-    frequencyAxisParent.style.top = frequencyAxisYOffset + 'px';
-    frequencyAxisParent.style.height = 'calc(100% - ' + (frequencyAxisYOffset + 1) + 'px)';
+function FrequencyAxis(frequencyAxisParent, element, horizontalZoomBounds, resizableDiv, octaveBounds) {
 
-    var height = resizableDivHeight - horizontalZoomSize.height;
-    var width = resizableDivWidth;
-    var freqGraphRectWidth = width - horizontalZoomSize.xOffset;
-    var freqGraphRectZoom = 1;
-    var octaves = [];
-    var octaveCount = 3;
-    var startOctaveSpacing = height / (octaveCount - 1);
-    var octaveSpacing = startOctaveSpacing;
+    "use strict";
 
-    var offsetY = 0;
-    var zoomY = 1;
+    frequencyAxisParent.style.top = horizontalZoomBounds.height + 'px';
+    frequencyAxisParent.style.height = 'calc(100% - ' + (horizontalZoomBounds.height + 1) + 'px)';
 
-    var noteIsBlack = [false, true, false, true, false, true, false, false, true, false, true, false];
+    const noteIsBlack = [false, true, false, true, false, true, false, false, true, false, true, false];
+    const defaultGraphWidth = resizableDiv.width - horizontalZoomBounds.offsetX;
+    const normalisedHeight = resizableDiv.height - horizontalZoomBounds.height;
+    const normalisedOctaveSpacing = normalisedHeight / octaveBounds.normalisedVisible;
+    const noteAxisGroupOffsetX = horizontalZoomBounds.offsetX * 0.3;
 
-    function createOctave() {
+    let octaves = [];
+    let offsetY = 0;
+    let zoomY = 1;
+    let widthZoom = 1;
 
-        var octaveGroup = createSVGElement('g');
-        var noteHeight = startOctaveSpacing / 12;
-        var noteAxisGroup = createSVGElement('g', {transform:"scale(1, 1)",  'vector-effect':'non-scaling-stroke'});
-
-        var noteGraphGroup = createSVGElement('g', {transform:"translate(" + horizontalZoomSize.xOffset + ", 0) scale(" + freqGraphRectZoom + ", 1)",  'vector-effect':'non-scaling-stroke'});
-
-        octaveGroup.appendChild(noteAxisGroup);
-        octaveGroup.appendChild(noteGraphGroup);
-
-        for (var i = 0; i < 12; ++i) {
-
-            var isBlack = noteIsBlack[i];
-
-            var graphColour = isBlack ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0)';
-            var axisColour = isBlack ? 'black' : 'white';
-
-            var freqAxisRect = createSVGElement('rect', {width:horizontalZoomSize.xOffset + 1, height:noteHeight, x:0,  y:noteHeight * i, fill:axisColour, 'vector-effect':'non-scaling-stroke'});
-
-            var freqGraphRect = createSVGElement('rect', {width:resizableDivWidth - horizontalZoomSize.xOffset, height:noteHeight, y:noteHeight * i, stroke:'rgba(0, 0, 0, 0.2)' , fill:graphColour, transform:'scale(1, 1)',  'vector-effect':'non-scaling-stroke'});
-
-            noteAxisGroup.appendChild(freqAxisRect);
-            noteGraphGroup.appendChild(freqGraphRect);
-        }
-
-        return {mainGroup:octaveGroup, noteGraphGroup:noteGraphGroup};
-    }
-
-    for (var i = 0; i < octaveCount; ++i) {
-
-        var octave = createOctave();
-        octave.mainGroup.setAttribute('transform', 'translate(0,' +  (i * octaveSpacing) + ')');
-        octaves.push(octave);
-
-        element.appendChild(octave.mainGroup);
-    }
-
-    this.onResize = function(resizableElement) {
-
-        height = resizableElement.clientHeight - horizontalZoomSize.height;
-        width = resizableElement.clientWidth;
-
-        var newFreqGraphRectWidth = width - horizontalZoomSize.xOffset;
-
-        freqGraphRectZoom = newFreqGraphRectWidth / freqGraphRectWidth;
-
-        for (var i = 0; i < octaves.length; ++i) {
-
-            octaves[i].noteGraphGroup.setAttribute('transform', "translate(" + horizontalZoomSize.xOffset + ",0) scale(" + freqGraphRectZoom + ", 1)");
-        }
+    this.setSize = function() {
+        //
+        // const height = resizableDiv.height - horizontalZoomBounds.height;
+        //
+        // const octaveSpacing = normalisedOctaveSpacing * zoomY;
+        // const octaveCount = Math.ceil(height / octaveSpacing) + 1;
+        // const octavesAdjusted = adjustOctaveCount(octaveCount);
+        setOctaveWidths();
 
 
-        octaveSpacing = startOctaveSpacing * zoomY;
-        var newOctaveCount = Math.ceil(height / octaveSpacing) + 1;
+        // if (octavesAdjusted === true) {
+        //
+        //     setOctavePositions(octaveSpacing);
+        //     return true;
+        // }
+        // else {
+        //
+        //     return false;
+        // }
+    };
 
-        if (newOctaveCount != octaveCount) {
 
-            adjustOctaveCount(newOctaveCount);
-            redrawOctavePositions(octaveSpacing);
-            octaveCount = newOctaveCount;
-        }
-    }
-
-    function adjustOctaveCount(newOctaveCount) {
-
-        if (newOctaveCount > octaveCount) {
-
-            for (var i = 0; i < newOctaveCount - octaveCount; ++i) {
-                var octave = createOctave();
-                element.appendChild(octave.mainGroup);
-                octaves.push(octave);
-            }
-        }
-        else if (newOctaveCount < octaveCount && newOctaveCount > 0) {
-
-            for (var i = 0; i < octaveCount - newOctaveCount; ++i) {
-
-                element.removeChild(octaves[octaves.length - 1].mainGroup);
-                octaves.pop();
-            }
-        }
-    }
 
     this.transform = function(matrix) {
 
         zoomY = matrix.d;
         offsetY = matrix.f;
 
-        octaveSpacing = startOctaveSpacing * zoomY;
-        var newOctaveCount = Math.ceil(height / octaveSpacing) + 1;
+        const height = resizableDiv.height - horizontalZoomBounds.height;
 
-        if (newOctaveCount != octaveCount) {
+        const octaveSpacing = normalisedOctaveSpacing * zoomY;
+        const octaveCount = Math.ceil(height / octaveSpacing) + 1;
 
-            adjustOctaveCount(newOctaveCount);
-            octaveCount = newOctaveCount;
-        }
+        adjustOctaveCount(octaveCount);
 
-        redrawOctavePositions(octaveSpacing);
+        setOctavePositions(octaveSpacing);
     };
 
-    function redrawOctavePositions(octaveSpacing) {
+    function createOctave() {
 
-        var offsetModSpacing = offsetY % octaveSpacing;
-        offsetModSpacing = (offsetModSpacing >= 0) ? offsetModSpacing - octaveSpacing : offsetModSpacing;
+        const octaveGroup = createSVGElement('g');
 
-        var firstOctaveY = (offsetY - offsetModSpacing);
-        var octaveStart = firstOctaveY / octaveSpacing;
+        const scalingGroup = createSVGElement('g', {transform:"scale(1, 1)",  'vector-effect':'non-scaling-stroke'});
 
-        for (var i = 0; i < octaves.length; ++i) {
+        const noteAxisGroup = createSVGElement('g', {transform:"scale(1, 1)",  'vector-effect':'non-scaling-stroke'});
 
-            var octave = octaves[i];
-            var octaveOffsetY = ((i - octaveStart) * octaveSpacing + offsetY);
-            var tickOffsetX = (-firstOctaveY + offsetY);
-            octave.mainGroup.setAttribute('transform', "translate(0, " + octaveOffsetY + ") scale(1," + zoomY + ")");
+        const noteGraphGroup = createSVGElement('g', {transform:"translate(" + horizontalZoomBounds.offsetX + ", 0) scale(" + widthZoom + ", 1)",  'vector-effect':'non-scaling-stroke'});
+
+        scalingGroup.appendChild(noteAxisGroup);
+        scalingGroup.appendChild(noteGraphGroup);
+        octaveGroup.appendChild(scalingGroup);
+
+        const noteHeight = normalisedOctaveSpacing / 12;
+
+        for (let i = 0; i < 12; ++i) {
+
+            const graphColour = noteIsBlack[i] ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0)';
+            const axisColour = noteIsBlack[i] ? 'black' : 'white';
+
+            const freqAxisRect = createSVGElement('rect', {width:horizontalZoomBounds.offsetX + 1 - noteAxisGroupOffsetX, height:noteHeight, x:noteAxisGroupOffsetX,  y:noteHeight * i, fill:axisColour, 'vector-effect':'non-scaling-stroke'});
+
+            const freqGraphRect = createSVGElement('rect', {width:resizableDiv.width - horizontalZoomBounds.offsetX, height:noteHeight, y:noteHeight * i, stroke:'rgba(0, 0, 0, 0.2)' , fill:graphColour, transform:'scale(1, 1)',  'vector-effect':'non-scaling-stroke'});
+
+            noteAxisGroup.appendChild(freqAxisRect);
+            noteGraphGroup.appendChild(freqGraphRect);
+        }
+
+        element.appendChild(octaveGroup);
+        return {mainGroup:octaveGroup, scalingGroup:scalingGroup,  noteGraphGroup:noteGraphGroup};
+    }
+
+    function adjustOctaveCount(newOctaveCount) {
+
+        let octaveCountAdjusted = false;
+        const octaveCurrentCount = octaves.length;
+
+        if (newOctaveCount > octaveCurrentCount) {
+
+            for (let i = 0; i < newOctaveCount - octaveCurrentCount; ++i) {
+
+                const octave = createOctave();
+                octaves.push(octave);
+            }
+
+            octaveCountAdjusted = true;
+        }
+        else if (newOctaveCount < octaveCurrentCount && newOctaveCount > 0) {
+
+            for (let i = 0; i < octaveCurrentCount - newOctaveCount; ++i) {
+
+                element.removeChild(octaves[octaves.length - 1].mainGroup);
+                octaves.pop();
+            }
+
+            octaveCountAdjusted = true;
+        }
+
+        return octaveCountAdjusted;
+    }
+
+    function setOctaveWidths() {
+
+        let newGraphWidth = resizableDiv.width - horizontalZoomBounds.offsetX;
+
+        widthZoom = newGraphWidth / defaultGraphWidth;
+
+        for (let i = 0; i < octaves.length; ++i) {
+
+            octaves[i].noteGraphGroup.setAttribute('transform', "translate(" + horizontalZoomBounds.offsetX + ",0) scale(" + widthZoom + ", 1)");
+        }
+    }
+
+    function setOctavePositions(octaveSpacing) {
+
+        let offsetModSpacing = offsetY % octaveSpacing;
+        offsetModSpacing = (offsetModSpacing > 0) ? offsetModSpacing - octaveSpacing : offsetModSpacing;
+
+        let firstOctaveY = (offsetY - offsetModSpacing);
+        const octaveStart = firstOctaveY / octaveSpacing;
+
+        for (let i = 0; i < octaves.length; ++i) {
+
+            const octave = octaves[i];
+            const octaveOffsetY = ((i - octaveStart) * octaveSpacing + offsetY);
+            octave.scalingGroup.setAttribute('transform', "translate(0, " + octaveOffsetY + ") scale(1," + zoomY + ")");
 
             firstOctaveY -= octaveSpacing;
         }
 
 
     }
-};
+}

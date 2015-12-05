@@ -1,179 +1,260 @@
-var TimeAxis = function(timeAxisParent, element, horizontalZoomSize, resizableDivWidth, resizableDivHeight) {
+/* exported TimeAxis */
 
-    var timeAxisXOffset = horizontalZoomSize.xOffset;
-    var timeAxisNavHeight = horizontalZoomSize.height;
-    timeAxisParent.style.left = timeAxisXOffset + 'px';
-    timeAxisParent.style.width = 'calc(100% - ' + (timeAxisXOffset + 1) + 'px)';
+function TimeAxis(timeAxisParent, element, horizontalZoomBounds, resizableDiv) {
 
-    var width = resizableDivWidth - timeAxisXOffset;
-    var height = resizableDivHeight;
+    "use strict";
+    timeAxisParent.style.left = horizontalZoomBounds.offsetX + 'px';
+    timeAxisParent.style.width = 'calc(100% - ' + (horizontalZoomBounds.offsetX + 1) + 'px)';
 
-    var ticks = [];
-    var tickCount = 4;
-    var minorTickCount = 3;
-    var startTickSpacing = width / tickCount;
-    var startMinorTickSpacing = startTickSpacing / (minorTickCount + 1);
-
-    var offsetX = 0;
-    var zoomX = 1;
-    var quantisedZoom = 1;
-
-    rectangleHeight = 10;
-    rectangleY = timeAxisNavHeight - rectangleHeight;
-
-    var rectangle = createSVGElement('rect', {width:width, height:rectangleHeight, y:rectangleY, fill:'black'});
-    element.appendChild(rectangle);
-
-    var tickY1 = timeAxisNavHeight / 2;
-
-    for (var i = 0; i < tickCount; i++) {
-
-        var tick = createTick();
-        tick.text.innerHTML = i;
-        tick.group.setAttribute('transform', "translate(" + (i * startTickSpacing) + ", 0)");
-
-        for (var j = 0; j < minorTickCount; j++) {
-
-            tick.minorTicks[j].setAttribute('transform', "translate(" + (j * startMinorTickSpacing + startMinorTickSpacing) + ", 0)");
-        }
-
-        element.appendChild(tick.group);
-        ticks.push(tick);
-    }
+    const axisLineHeight = 10;
+    const axisLineY = horizontalZoomBounds.height - axisLineHeight;
+    const axisLine = createSVGElement('rect', {height:axisLineHeight, y:axisLineY, fill:'black'});
+    element.appendChild(axisLine);
 
 
-    function createTick() {
+    const ticks = [];
+    const unityZoomTickWidth = (resizableDiv.width - horizontalZoomBounds.offsetX) / 16;
 
-        function createMinorTicks(group) {
+    const defaultTimeSignature = {numerator:4, denominator:4};
+    const defaultStartTime = {bars:0, beats:0, sixteenths:0, totalSixteenths:0};
+    const defaultEndTime = {bars:1, beats:0, sixteenths:0, totalSixteenths:16};
 
-            var minorTicks = [];
-            for (var i = 0; i < minorTickCount; i++) {
+    let offsetX = 0;
+    let zoomX = 1;
 
-                var line = createSVGElement('line', {y1:tickY1+5, y2:height, stroke:'rgba(0, 0, 0, 0.3)', 'vector-effect':'inherit'});
-                group.appendChild(line);
-                minorTicks.push(line);
-            }
-            return minorTicks;
-        }
 
-        var group = createSVGElement('g');
-        var line = createSVGElement('line', {y1:tickY1, y2:height, 'vector-effect':'inherit'});
+    let timeSignature = defaultTimeSignature;
+    let startTime = defaultStartTime;
+    let endTime = defaultEndTime;
 
-        element.appendChild(line);
+    this.setTimeProperties = function(timeSignatureIn, startTimeIn, endTimeIn) {
 
-        var text = createSVGElement('text', {y:17, x:2, 'text-anchor':'right', 'font-family':'Verdana', 'font-size':10, fill:'black'});
-        group.appendChild(line);
-        group.appendChild(text);
-        var minorTicks = createMinorTicks(group);
-        return {group:group, text:text, line:line, minorTicks:minorTicks};
-    }
+        timeSignature = timeSignatureIn;
+        startTime = startTimeIn;
+        endTime = endTimeIn;
 
-    this.onResize = function(resizableElement) {
-
-        width = resizableElement.clientWidth - timeAxisXOffset;
-        height = resizableElement.clientHeight;
-
-        rectangle.setAttribute('width', width);
-
-        for (var i = 0; i < tickCount; i++) {
-
-            ticks[i].line.setAttribute('y2', height);
-
-            for (var j = 0; j < minorTickCount; ++j) {
-
-                ticks[i].minorTicks[j].setAttribute('y2', height);
-            }
-        }
-
-        var tickSpacing = getTickSpacing(zoomX);
-        var newTickCount = Math.ceil(width / tickSpacing) + 1;
-
-        if (newTickCount != tickCount) {
-
-            adjustTickCount(newTickCount);
-            redrawTickPositions(tickSpacing);
-            tickCount = newTickCount;
-        }
+        const quantisedZoom = getQuantisedZoom();
+        const tickSpacing = getTickSpacing(quantisedZoom);
+        setTickPositions(tickSpacing, quantisedZoom);
     };
 
-    function adjustTickCount(newTickCount) {
 
-        if (newTickCount > tickCount) {
+    this.setSize = function() {
 
-            for (var i = 0; i < newTickCount - tickCount; i++) {
+        const width = resizableDiv.width - horizontalZoomBounds.offsetX;
+        axisLine.setAttribute('width', width);
 
-                var tick = createTick();
-                element.appendChild(tick.group);
-                ticks.push(tick);
-            }
-        }
-        else if (newTickCount < tickCount && newTickCount > 0) {
+        const calculated = calculateTickCount();
 
-            for (var i = 0; i < tickCount - newTickCount; i++) {
+        const ticksAdjusted = adjustTickCount(calculated.tickCount);
+        setTickHeights();
 
-                element.removeChild(ticks[ticks.length - 1].group);
-                ticks.pop();
-            }
-        }
-    }
+        if (ticksAdjusted) {
 
-    function getTickSpacing(zoomX) {
-
-        var newQuantisedZoom = (Math.pow(2, Math.floor(Math.log(zoomX)/Math.log(2))));
-
-        if (newQuantisedZoom != quantisedZoom) {
-
-            quantisedZoom = newQuantisedZoom;
+            setTickPositions(calculated.tickSpacing, calculated.quantisedZoom);
         }
 
-        var tickSpacing = (startTickSpacing / quantisedZoom) * zoomX;
-        return tickSpacing;
-    }
-
+    };
 
     this.transform = function(matrix) {
 
         zoomX = matrix.a;
         offsetX = matrix.e;
+        const calculated = calculateTickCount();
 
-        var tickSpacing = getTickSpacing(zoomX);
-        var newTickCount = Math.ceil(width / tickSpacing) + 1;
+        adjustTickCount(calculated.tickCount);
 
-        if (newTickCount != tickCount) {
+        setTickPositions(calculated.tickSpacing, calculated.quantisedZoom);
 
-            adjustTickCount(newTickCount);
-            tickCount = newTickCount;
-        }
+    };
 
-        redrawTickPositions(tickSpacing);
+    function getQuantisedZoom() {
+
+        const quantisedZoom = (Math.pow(2, Math.floor(Math.log(zoomX)/Math.log(2))));
+        return quantisedZoom;
     }
 
 
-    function redrawTickPositions(tickSpacing) {
+    function getTickSpacing(quantisedZoom) {
 
-        var offsetModSpacing = offsetX % tickSpacing;
-        offsetModSpacing = (offsetModSpacing >= 0) ? offsetModSpacing - tickSpacing : offsetModSpacing;
-        var firstTickX = (offsetX - offsetModSpacing);
-        var tickStart = firstTickX / tickSpacing;
-        var minorTickSpacing = tickSpacing / (minorTickCount + 1);
+        const tickSpacing = (unityZoomTickWidth / quantisedZoom) * zoomX;
+        return tickSpacing;
+    }
 
-        for (var i = 0; i < ticks.length; ++i) {
+    function calculateTickCount() {
 
-            var tick = ticks[i];
-            // var tickOffsetX = ((i - tickStart) * tickSpacing + offsetX);
-            var tickOffsetX = (-firstTickX + offsetX);
-            tick.group.setAttribute('transform', "translate(" + tickOffsetX + ", 0)");
+        const width = resizableDiv.width - horizontalZoomBounds.offsetX;
+        const quantisedZoom = getQuantisedZoom();
+        const tickSpacing = getTickSpacing(quantisedZoom);
+        const tickCount = Math.ceil(width / tickSpacing) + 1;
+        return {tickCount:tickCount, quantisedZoom:quantisedZoom, tickSpacing:tickSpacing};
+    }
 
-            for (var j = 0, k = 1; j < minorTickCount; ++j, ++k) {
+    function createTick() {
 
-                tick.minorTicks[j].setAttribute('transform', "translate(" + (minorTickSpacing * k) + ", 0)");
+        const height = resizableDiv.height;
+        const tickGroup = createSVGElement('g');
+        const line = createSVGElement('line', {x1:0, x2:0, y2:height, 'vector-effect':'inherit'});
+        const text = createSVGElement('text', {y:17, x:2, 'text-anchor':'right', 'font-family':'Verdana', 'font-size':10, fill:'black'});
+
+        tickGroup.appendChild(line);
+        tickGroup.appendChild(text);
+        element.appendChild(tickGroup);
+
+        return {group:tickGroup, text:text, line:line};
+    }
+
+    function adjustTickCount(newTicksCount) {
+
+        let tickCountAdjusted = false;
+        const ticksCurrentCount = ticks.length;
+
+        if (newTicksCount > ticksCurrentCount) {
+
+
+            for (let i = 0; i < newTicksCount - ticksCurrentCount; ++i) {
+
+                const tick = createTick();
+                ticks.push(tick);
             }
 
-            var tickText = Math.round(((i - tickStart) / quantisedZoom) * 1000000) / 1000000;
-            tick.text.innerHTML = tickText;
-            firstTickX -= tickSpacing;
+            tickCountAdjusted = true;
+        }
+        else if (newTicksCount < ticksCurrentCount && newTicksCount > 0) {
+
+            for (let i = 0; i < ticksCurrentCount - newTicksCount; ++i) {
+
+                element.removeChild(ticks[ticks.length - 1].group);
+                ticks.pop();
+            }
+
+            tickCountAdjusted = true;
+        }
+
+        return tickCountAdjusted;
+    }
+
+    function setTickHeights() {
+
+        for (let tick of ticks) {
+
+            tick.line.setAttribute('y2', resizableDiv.height);
+        }
+    }
+
+    function getTickNumbers(sixteenthIndex) {
+
+        const sixteenthsPerBeat = (16 / timeSignature.denominator);
+        const sixteenthsPerBar = sixteenthsPerBeat * timeSignature.numerator;
+
+        const bar = Math.floor(sixteenthIndex / sixteenthsPerBar);
+        sixteenthIndex -= bar * sixteenthsPerBar;
+        const beat = Math.floor(sixteenthIndex / sixteenthsPerBeat);
+        sixteenthIndex -= beat * sixteenthsPerBeat;
+
+        return {bar:bar, beat:beat, sixteenth:sixteenthIndex};
+    }
+
+    function setTickBar(tick) {
+
+        tick.line.setAttribute('y1', 0);
+        tick.line.setAttribute('stroke-dasharray', "0");
+        tick.line.setAttribute('stroke', "black");
+    }
+
+    function setTickBeat(tick) {
+
+        tick.line.setAttribute('y1', horizontalZoomBounds.height * 0.5);
+        tick.line.setAttribute('stroke-dasharray', "0");
+        tick.line.setAttribute('stroke', "rgba(0, 0, 0, 0.5)");
+
+    }
+
+    function setTickSixteenth(tick) {
+
+        tick.line.setAttribute('y1', horizontalZoomBounds.height * 0.6);
+        tick.line.setAttribute('stroke-dasharray', "0");
+        tick.line.setAttribute('stroke', "rgba(0, 0, 0, 0.25)");
+
+    }
+
+    function setTickMinor(tick) {
+
+        tick.line.setAttribute('y1', horizontalZoomBounds.height);
+        tick.line.setAttribute('stroke-dasharray', "1, 1");
+        tick.line.setAttribute('stroke', "rgba(0, 0, 0, 0.25)");
+    }
+
+    function formatTick(tick, tickIndex, tick16thIndex, quantisedZoom) {
+
+        const tickNumbers = getTickNumbers(tick16thIndex);
+
+        if (tickNumbers.sixteenth !== Math.floor(tickNumbers.sixteenth)) {
+
+            setTickMinor(tick);
+            tick.text.innerHTML = "";
+            return;
+        }
+
+        let renderLabel = false;
+        const modulus = 2 / quantisedZoom;
+
+        if (tick16thIndex % modulus === 0) {
+
+            renderLabel = true;
+        }
+
+        if (tickNumbers.beat === 0 && tickNumbers.sixteenth === 0) {
+
+            setTickBar(tick);
+
+            if (renderLabel === true) {
+
+                tick.text.innerHTML = "" + tickNumbers.bar;
+            }
+        }
+        else if (tickNumbers.sixteenth === 0) {
+
+            setTickBeat(tick);
+
+            if (renderLabel === true) {
+
+                tick.text.innerHTML = "" + tickNumbers.bar + "." + tickNumbers.beat;
+            }
+        }
+        else {
+
+            setTickSixteenth(tick);
+
+            if (renderLabel === true) {
+
+                tick.text.innerHTML = "" + tickNumbers.bar + "." + tickNumbers.beat + "." + tickNumbers.sixteenth;
+            }
+        }
+
+        if (renderLabel === false) {
+
+            tick.text.innerHTML = "";
         }
     }
 
 
-};
+    function setTickPositions(tickSpacing, quantisedZoom) {
+
+        let offsetModSpacing = offsetX % tickSpacing;
+        offsetModSpacing = (offsetModSpacing >= 0) ? offsetModSpacing - tickSpacing : offsetModSpacing;
+        let firstTickX = (offsetX - offsetModSpacing);
+        const tickStart = Math.floor(offsetX / tickSpacing);
+
+        ticks.forEach(function(tick, i) {
+
+            const tickOffsetX = (-firstTickX + offsetX);
+            tick.group.setAttribute('transform', "translate(" + tickOffsetX + ", 0)");
+            const tickIndex = (-tickStart + i - 1);
+            const tick16thIndex = tickIndex / quantisedZoom;
+            formatTick(tick, tickIndex, tick16thIndex, quantisedZoom);
+
+            firstTickX -= tickSpacing;
+        });
+    }
+}

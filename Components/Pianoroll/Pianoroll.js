@@ -1,60 +1,62 @@
 (function (){
 
-    var self;
+    "use strict";
 
-    function initialise() {
+    function initialise(self) {
 
-        var rootDiv = self.$.root;
-        rootDiv.style.width = self.width + "px";
-        rootDiv.style.height = self.height + "px";
-        rootDiv.style.border = "1px solid black"
+        const horizontalZoomBounds = {offsetX:100, height:40};
 
-        var resizableDivWidth = 500;
-        var resizableDivHeight = 500;
-        var resizableDivElement = self.$.resizable;
+        const resizableDiv = new ResizableDiv(self.parentElement, self.$.ResizableDiv, self.width, self.height, self.x, self.y, onResize);
 
-        function onResize(resizableElement) {
+        const timeAxis = new TimeAxis(self.$.TimeAxisParent, self.$.TimeAxisGroup, horizontalZoomBounds, resizableDiv);
 
-            timeAxisNav.onResize(resizableElement);
-            frequencyAxisNav.onResize(resizableElement);
-            interaction.onResize(resizableElement);
+        const octaveBounds = {count:3, normalisedVisible:2};
+
+        const frequencyAxis = new FrequencyAxis(self.$.FrequencyAxisParent, self.$.FrequencyAxisGroup, horizontalZoomBounds, resizableDiv, octaveBounds);
+
+        const interaction = new Interaction(self.$.InteractionParent, self.$.TransformState, horizontalZoomBounds, resizableDiv, onInteraction, octaveBounds);
+
+        timeAxis.setSize();
+        frequencyAxis.setSize();
+
+        function onResize() {
+
+            timeAxis.setSize();
+            frequencyAxis.setSize();
+            interaction.setSize();
         }
 
         function onInteraction(matrix) {
 
-            noteAreaNav.transform(matrix);
-            frequencyAxisNav.transform(matrix);
-            timeAxisNav.transform(matrix);
+            timeAxis.transform(matrix);
+            frequencyAxis.transform(matrix);
         }
 
-        var horizontalZoomSize = {xOffset:80, height:40};
-        var noteAreaSize = {xOffset:80, yOffset:40};
 
-        var resizableDiv = new ResizableDiv(rootDiv, resizableDivElement, 50, 50, resizableDivWidth, resizableDivHeight, onResize);
+        self.timePropertyChanged = function(timeSignature, startTimeRange, endTimeRange) {
 
-        var noteAreaNav = new NoteArea(self.$.NoteAreaParent, self.$.NoteAreaGroup, noteAreaSize);
+            timeAxis.setTimeProperties(timeSignature, startTimeRange, endTimeRange);
 
-        var timeAxisNav = new TimeAxis(self.$.TimeAxisParent, self.$.TimeAxisGroup, horizontalZoomSize,  resizableDivWidth, resizableDivHeight);
+        };
 
-        var frequencyAxisNav = new FrequencyAxis(self.$.FrequencyAxisParent, self.$.FrequencyAxisGroup, horizontalZoomSize,  resizableDivWidth, resizableDivHeight);
-
-        var interaction = new Interaction(self.$.InteractionParent, resizableDivWidth, resizableDivHeight, horizontalZoomSize, noteAreaSize, onInteraction);
+        onResize();
     }
 
     Polymer({
 
         is: 'piano-roll',
-
+        timePropertyChanged:null,
         properties: {
             width:Number,
             height:Number,
+            x:Number,
+            y:Number
         },
 
         ready: function () {
 
-            self = this;
-            initialise();
+            initialise(this);
         },
 
     });
-})()
+})();

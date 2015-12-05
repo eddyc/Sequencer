@@ -1,126 +1,133 @@
-var ResizableDiv = function(rootElement, resizableElement, x, y, width, height, onResize) {
+/* exported ResizableDiv */
 
-    resizableElement.style.border = "1px solid black"
-    var minWidth = 60;
-    var minHeight = 40;
+function ResizableDiv(parentDiv, resizableDiv, initialWidth, initialHeight, initialX, initialY, onResize) {
 
-    var MARGINS = 4;
+    "use strict";
+    const self = this;
+    self.width = initialWidth;
+    self.height = initialHeight;
+    self.x = initialX;
+    self.y = initialY;
 
-    var clicked = null;
-    var onRightEdge, onBottomEdge, onLeftEdge, onTopEdge;
+    const minWidth = 100;
+    const minHeight = 100;
+    const marginWidth = 4;
 
-    rootElement.addEventListener('mousemove', onMove);
-    rootElement.addEventListener('mouseup', onUp);
+    resizableDiv.style.width = initialWidth + 'px';
+    resizableDiv.style.height = initialHeight + 'px';
+    resizableDiv.style.left = initialX + 'px';
+    resizableDiv.style.top = initialY + 'px';
 
-    resizableElement.style.position = 'absolute';
-    setBounds(resizableElement, x,y,width,height);
+    let clickProperties = null;
 
-    resizableElement.addEventListener('mousedown', onMouseDown);
-    // resizableElement.addEventListener('mouseenter', function(event) {
-        // var x = window.scrollX;
-        // var y = window.scrollY;
-        // window.onscroll=function(){window.scrollTo(x, y);};
-        // console.log("mouseenter");
-    // });
-    // resizableElement.addEventListener('mouseleave', function(event) {
-        // window.onscroll=function(){};
-        // console.log("mouseleave");
-    // });
+    parentDiv.addEventListener('mousemove', onMouseMove);
+    parentDiv.addEventListener('mouseup', onMouseUp);
+    resizableDiv.addEventListener('mousedown', onMouseDown);
 
-    function setBounds(element, x, y, w, h) {
-        element.style.left = x + 'px';
-        element.style.top = y + 'px';
-        element.style.width = w + 'px';
-        element.style.height = h + 'px';
+    function calculatePosition(event) {
+
+        const bounds = resizableDiv.getBoundingClientRect();
+        const x = event.clientX - bounds.left;
+        const y = event.clientY - bounds.top;
+
+        const onTopEdge = y < marginWidth;
+        const onLeftEdge = x < marginWidth;
+        const onRightEdge = x >= bounds.width - marginWidth;
+        const onBottomEdge = y >= bounds.height - marginWidth;
+
+
+        if (onRightEdge && onBottomEdge || onLeftEdge && onTopEdge) {
+
+            resizableDiv.style.cursor = 'nwse-resize';
+        }
+        else if (onRightEdge && onTopEdge || onBottomEdge && onLeftEdge) {
+
+            resizableDiv.style.cursor = 'nesw-resize';
+        }
+        else if (onRightEdge || onLeftEdge) {
+
+            resizableDiv.style.cursor = 'ew-resize';
+        }
+        else if (onBottomEdge || onTopEdge) {
+
+            resizableDiv.style.cursor = 'ns-resize';
+        }
+        else {
+
+            resizableDiv.style.cursor = 'default';
+        }
+
+        return {bounds:bounds, x:x, y:y, onTopEdge:onTopEdge, onLeftEdge:onLeftEdge, onRightEdge:onRightEdge, onBottomEdge:onBottomEdge};
     }
 
-    function onUp(e) {
+    function onMouseMove(event) {
 
-        clicked = null;
+        const calculated = calculatePosition(event);
+
+        if (clickProperties !== null) {
+
+            if (clickProperties.onRightEdge) {
+
+                self.width = Math.max(calculated.x, minWidth);
+                resizableDiv.style.width = self.width + 'px';
+            }
+
+            if (clickProperties.onBottomEdge) {
+
+                self.height = Math.max(calculated.y, minHeight);
+                resizableDiv.style.height = self.height + 'px';
+            }
+
+            if (clickProperties.onLeftEdge) {
+
+                const currentWidth = Math.max(clickProperties.cx - event.clientX  + clickProperties.w, minWidth);
+
+                if (currentWidth > minWidth) {
+
+                    self.width = currentWidth;
+                    resizableDiv.style.width = self.width + 'px';
+                    self.x = event.clientX;
+                    resizableDiv.style.left = self.x + 'px';
+                }
+            }
+
+            if (clickProperties.onTopEdge) {
+
+                const currentHeight = Math.max(clickProperties.cy - event.clientY  + clickProperties.h, minHeight);
+
+                if (currentHeight > minHeight) {
+
+                    self.height = currentHeight;
+                    resizableDiv.style.height = self.height + 'px';
+                    self.y = event.clientY;
+                    resizableDiv.style.top = self.y + 'px';
+                }
+            }
+
+            onResize(resizableDiv);
+        }
     }
 
-    function onMouseDown(e) {
+    function onMouseUp() {
 
-        var calculated = calculate(e);
+        clickProperties = null;
+    }
 
-        var isResizing = calculated.onRightEdge || calculated.onBottomEdge || calculated.onTopEdge || calculated.onLeftEdge;
+    function onMouseDown(event) {
 
-        clicked = {
+        const calculated = calculatePosition(event);
+
+        clickProperties = {
             x: calculated.x,
             y: calculated.y,
-            cx: e.clientX,
-            cy: e.clientY,
-            w: calculated.b.width,
-            h: calculated.b.height,
-            isResizing: isResizing,
-            isMoving: !isResizing,
+            cx: event.clientX,
+            cy: event.clientY,
+            w: calculated.bounds.width,
+            h: calculated.bounds.height,
             onTopEdge: calculated.onTopEdge,
             onLeftEdge: calculated.onLeftEdge,
             onRightEdge: calculated.onRightEdge,
             onBottomEdge: calculated.onBottomEdge
         };
     }
-
-    function calculate(e) {
-
-        var b = resizableElement.getBoundingClientRect();
-        var x = e.clientX - b.left;
-        var y = e.clientY - b.top;
-
-        var onTopEdge = y < MARGINS;
-        var onLeftEdge = x < MARGINS;
-        var onRightEdge = x >= b.width - MARGINS;
-        var onBottomEdge = y >= b.height - MARGINS;
-
-        if (onRightEdge && onBottomEdge || onLeftEdge && onTopEdge) {
-
-            resizableElement.style.cursor = 'nwse-resize';
-        }
-        else if (onRightEdge && onTopEdge || onBottomEdge && onLeftEdge) {
-
-            resizableElement.style.cursor = 'nesw-resize';
-        }
-        else if (onRightEdge || onLeftEdge) {
-
-            resizableElement.style.cursor = 'ew-resize';
-        }
-        else if (onBottomEdge || onTopEdge) {
-
-            resizableElement.style.cursor = 'ns-resize';
-        }
-        else {
-
-            resizableElement.style.cursor = 'default';
-        }
-        return {b:b, x:x, y:y, onTopEdge:onTopEdge, onLeftEdge:onLeftEdge, onRightEdge:onRightEdge, onBottomEdge:onBottomEdge};
-    }
-
-    function onMove(e) {
-
-        var calculated = calculate(e);
-        if (clicked && clicked.isResizing) {
-
-            if (clicked.onRightEdge) resizableElement.style.width = Math.max(calculated.x, minWidth) + 'px';
-            if (clicked.onBottomEdge) resizableElement.style.height = Math.max(calculated.y, minHeight) + 'px';
-
-            if (clicked.onLeftEdge) {
-                var currentWidth = Math.max(clicked.cx - e.clientX  + clicked.w, minWidth);
-                if (currentWidth > minWidth) {
-                    resizableElement.style.width = currentWidth + 'px';
-                    resizableElement.style.left = e.clientX + 'px';
-                }
-            }
-
-            if (clicked.onTopEdge) {
-                var currentHeight = Math.max(clicked.cy - e.clientY  + clicked.h, minHeight);
-                if (currentHeight > minHeight) {
-                    resizableElement.style.height = currentHeight + 'px';
-                    resizableElement.style.top = e.clientY + 'px';
-                }
-            }
-
-            onResize(resizableElement);
-        }
-    }
-
-};
+}

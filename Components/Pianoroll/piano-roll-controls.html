@@ -1,0 +1,47 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html"></link>
+
+<dom-module id="piano-roll-controls">
+    <template>
+        <link rel="stylesheet" href="piano-roll-controls.css"></link>
+        <div id="TimeSignature">
+            <div id="TimeSignatureLabel">Time Signature</div>
+            <div id="Numerator" class="ScrollableNumber">
+                <div id="NumeratorNumber" class="NumberDiv"></div>
+            </div>
+            <div id="Denominator" class="ScrollableNumber">
+                <div id="DenominatorNumber" class="NumberDiv"></div>
+            </div>
+        </div>
+        <br>
+        <div id="StartTimeRange">
+            <div id="StartTimeLabel">Start</div>
+            <div id="StartBars" class="ScrollableNumber">
+                <div id="StartBarsNumber" class="NumberDiv"></div>
+            </div>
+            <div id="StartBeats" class="ScrollableNumber">
+                <div id="StartBeatsNumber" class="NumberDiv"></div>
+            </div>
+            <div id="StartSixteenths" class="ScrollableNumber">
+                <div id="StartSixteenthsNumber" class="NumberDiv"></div>
+            </div>
+        </div>
+        <br>
+        <div id="EndTimeRange">
+            <div id="EndTimeLabel">End</div>
+            <div id="EndBars" class="ScrollableNumber">
+                <div id="EndBarsNumber" class="NumberDiv"></div>
+            </div>
+            <div id="EndBeats" class="ScrollableNumber">
+                <div id="EndBeatsNumber" class="NumberDiv"></div>
+            </div>
+            <div id="EndSixteenths" class="ScrollableNumber">
+                <div id="EndSixteenthsNumber" class="NumberDiv"></div>
+            </div>
+        </div>
+
+    </template>
+</dom-module>
+
+<script src="TimeSignatureControl.js"></script>
+<script src="TimeRangeControl.js"></script>
+<script src="PianorollControls.js"></script>

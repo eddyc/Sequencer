@@ -1,0 +1,51 @@
+.ScrollableNumber {
+
+    border:1px black solid;
+    width:20px;
+    height:20px;
+    text-align:center;
+    font-family:sans-serif;
+    margin-top:1px;
+    display:table;
+    float:left;
+    margin:1px;
+}
+
+.NumberDiv {
+
+    display: table-cell;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    cursor:ns-resize;
+}
+
+#StartTimeRange {
+
+    height:30px;
+}
+
+#StartTimeLabel {
+
+    font-family:sans-serif;
+}
+
+#EndTimeRange {
+
+    height:30px;
+}
+
+#EndTimeLabel {
+
+    font-family:sans-serif;
+}
+
+
+#TimeSignature {
+
+    height:30px;
+}
+
+#TimeSignatureLabel {
+
+    font-family: sans-serif;
+}
