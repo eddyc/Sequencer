@@ -22,7 +22,7 @@
         function onResize() {
 
             timeAxis.setSize();
-            frequencyAxis.setSize();
+            frequencyAxis.rescale();
             interaction.setSize();
         }
 

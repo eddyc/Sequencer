@@ -19,27 +19,30 @@ function FrequencyAxis(frequencyAxisParent, element, horizontalZoomBounds, resiz
     let widthZoom = 1;
 
     this.setSize = function() {
-        //
-        // const height = resizableDiv.height - horizontalZoomBounds.height;
-        //
-        // const octaveSpacing = normalisedOctaveSpacing * zoomY;
-        // const octaveCount = Math.ceil(height / octaveSpacing) + 1;
-        // const octavesAdjusted = adjustOctaveCount(octaveCount);
+
+        const height = resizableDiv.height - horizontalZoomBounds.height;
+
+        const octaveSpacing = normalisedOctaveSpacing * zoomY;
+        const octaveCount = Math.ceil(height / octaveSpacing) + 1;
+        const octavesAdjusted = adjustOctaveCount(octaveCount);
         setOctaveWidths();
 
 
-        // if (octavesAdjusted === true) {
-        //
-        //     setOctavePositions(octaveSpacing);
-        //     return true;
-        // }
-        // else {
-        //
-        //     return false;
-        // }
+        if (octavesAdjusted === true) {
+
+            setOctavePositions(octaveSpacing);
+            return true;
+        }
+        else {
+
+            return false;
+        }
     };
 
+    this.rescale = function() {
 
+        setOctaveWidths();
+    };
 
     this.transform = function(matrix) {
 

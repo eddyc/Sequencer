@@ -55,7 +55,7 @@ function Interaction(interactionParent, transformState, horizontalZoomBounds, re
         matrix = matrix.scale(heightMultiple);
 
         matrix.a = a;
-        pan(destination, focus, matrix, true);
+        pan(destination, focus, matrix);
         pianorollHeight = resizableDiv.height;
         pianorollWidth = resizableDiv.width;
     };
@@ -118,21 +118,19 @@ function Interaction(interactionParent, transformState, horizontalZoomBounds, re
             matrix.a = a;
         }
 
-        pan(destination, focus, matrix, false);
+        pan(destination, focus, matrix);
 
     }
 
-    function pan(destination, origin, matrix, isResizing) {
+    function pan(destination, origin, matrix) {
 
         const beta = (matrix.a * (destination.y - matrix.d * origin.y - matrix.f) - matrix.b * (destination.x - matrix.c * origin.y - matrix.e)) / (matrix.a * matrix.d - matrix.b * matrix.c);
         const alpha = (destination.x - matrix.a * origin.x - matrix.c * origin.y - matrix.e - matrix.c * beta) / matrix.a;
         matrix = matrix.translate(alpha, beta);
 
-        if (isResizing === false) {
 
-            setFrequencyBounds(matrix);
+        setFrequencyBounds(matrix);
 
-        }
 
         interactionCallback(matrix);
         const transform = interactionParent.createSVGTransformFromMatrix(matrix);
