@@ -9,8 +9,8 @@ function ResizableDiv(parentDiv, resizableDiv, initialWidth, initialHeight, init
     self.x = initialX;
     self.y = initialY;
 
-    const minWidth = 100;
-    const minHeight = 100;
+    const minWidth = 120;
+    const minHeight = 120;
     const marginWidth = 4;
 
     resizableDiv.style.width = initialWidth + 'px';

@@ -11,10 +11,11 @@
         const timeAxis = new TimeAxis(self.$.TimeAxisParent, self.$.TimeAxisGroup, horizontalZoomBounds, resizableDiv);
 
         const octaveBounds = {count:3, normalisedVisible:2};
+        const timeBounds = {start:{bars:0, beats:0, sixteenths:0, totalSixteenths:0}, end:{bars:1, beats:0, sixteenths:0, totalSixteenths:16}};
 
         const frequencyAxis = new FrequencyAxis(self.$.FrequencyAxisParent, self.$.FrequencyAxisGroup, horizontalZoomBounds, resizableDiv, octaveBounds);
 
-        const interaction = new Interaction(self.$.InteractionParent, self.$.TransformState, horizontalZoomBounds, resizableDiv, onInteraction, octaveBounds);
+        const interaction = new Interaction(self.$.InteractionParent, self.$.TransformState, horizontalZoomBounds, resizableDiv, onInteraction, octaveBounds, timeBounds);
 
         timeAxis.setSize();
         frequencyAxis.setSize();

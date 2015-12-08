@@ -157,7 +157,7 @@ function TimeAxis(timeAxisParent, element, horizontalZoomBounds, resizableDiv) {
 
     function setTickBar(tick) {
 
-        tick.line.setAttribute('y1', 0);
+        tick.line.setAttribute('y1', horizontalZoomBounds.height * 0.4);
         tick.line.setAttribute('stroke-dasharray', "0");
         tick.line.setAttribute('stroke', "black");
     }
