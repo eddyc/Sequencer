@@ -7,11 +7,15 @@
             <svg id='TimeAxisParent'>
                 <g id='TimeAxisGroup' vector-effect="non-scaling-stroke" fill='none' stroke-width='1' stroke='black'></g>
             </svg>
+
             <svg id='FrequencyAxisParent'>
                 <g id='FrequencyAxisGroup' vector-effect="non-scaling-stroke" fill='none' stroke-width='1' stroke='black'></g>
             </svg>
             <svg id='InteractionParent'>
                 <g id='TransformState'></g>
+                <g id='TimeRangeMask'>
+                    <g id='TimeRangeGroup' vector-effect="non-scaling-stroke" fill='none' transform='translate(0, 0) scale(1, 1)'></g>
+                </g>
             </svg>
         </div>
     </template>
@@ -22,4 +26,5 @@
 <script src="Interaction.js"></script>
 <script src="Pianoroll.js"></script>
 <script src="TimeAxis.js"></script>
+<script src="TimeRange.js"></script>
 <script src="FrequencyAxis.js"></script>

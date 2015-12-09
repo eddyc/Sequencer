@@ -12,6 +12,7 @@
         "TimeAxis": true,
         "FrequencyAxis": true,
         "TimeSignatureControl": true,
+        "TimeRange": true,
         "TimeRangeControl": true,
         "Interaction": true,
         "$": false,

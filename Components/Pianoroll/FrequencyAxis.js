@@ -149,7 +149,5 @@ function FrequencyAxis(frequencyAxisParent, element, horizontalZoomBounds, resiz
 
             firstOctaveY -= octaveSpacing;
         }
-
-
     }
 }

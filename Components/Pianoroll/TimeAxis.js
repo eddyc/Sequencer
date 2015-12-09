@@ -13,25 +13,22 @@ function TimeAxis(timeAxisParent, element, horizontalZoomBounds, resizableDiv) {
 
 
     const ticks = [];
-    const unityZoomTickWidth = (resizableDiv.width - horizontalZoomBounds.offsetX) / 16;
-
-    const defaultTimeSignature = {numerator:4, denominator:4};
     const defaultStartTime = {bars:0, beats:0, sixteenths:0, totalSixteenths:0};
     const defaultEndTime = {bars:1, beats:0, sixteenths:0, totalSixteenths:16};
+
+    const unityZoomTickWidth = (resizableDiv.width - horizontalZoomBounds.offsetX) / (defaultEndTime.totalSixteenths - defaultStartTime.totalSixteenths);
+
+    const defaultTimeSignature = {numerator:4, denominator:4};
 
     let offsetX = 0;
     let zoomX = 1;
 
 
     let timeSignature = defaultTimeSignature;
-    let startTime = defaultStartTime;
-    let endTime = defaultEndTime;
 
-    this.setTimeProperties = function(timeSignatureIn, startTimeIn, endTimeIn) {
+    this.setTimeProperties = function(timeSignatureIn) {
 
         timeSignature = timeSignatureIn;
-        startTime = startTimeIn;
-        endTime = endTimeIn;
 
         const quantisedZoom = getQuantisedZoom();
         const tickSpacing = getTickSpacing(quantisedZoom);

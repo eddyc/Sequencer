@@ -11,11 +11,13 @@
         const timeAxis = new TimeAxis(self.$.TimeAxisParent, self.$.TimeAxisGroup, horizontalZoomBounds, resizableDiv);
 
         const octaveBounds = {count:3, normalisedVisible:2};
+
         const timeBounds = {start:{bars:0, beats:0, sixteenths:0, totalSixteenths:0}, end:{bars:1, beats:0, sixteenths:0, totalSixteenths:16}};
 
         const frequencyAxis = new FrequencyAxis(self.$.FrequencyAxisParent, self.$.FrequencyAxisGroup, horizontalZoomBounds, resizableDiv, octaveBounds);
 
         const interaction = new Interaction(self.$.InteractionParent, self.$.TransformState, horizontalZoomBounds, resizableDiv, onInteraction, octaveBounds, timeBounds);
+        const timeRange = new TimeRange(self.$.InteractionParent, self.$.TimeRangeMask, self.$.TimeRangeGroup, horizontalZoomBounds, resizableDiv, timeBounds);
 
         timeAxis.setSize();
         frequencyAxis.setSize();
@@ -30,14 +32,15 @@
         function onInteraction(matrix) {
 
             timeAxis.transform(matrix);
+            timeRange.transform(matrix);
             frequencyAxis.transform(matrix);
         }
 
-
         self.timePropertyChanged = function(timeSignature, startTimeRange, endTimeRange) {
 
-            timeAxis.setTimeProperties(timeSignature, startTimeRange, endTimeRange);
-
+            timeAxis.setTimeProperties(timeSignature);
+            timeRange.setTimeBounds({start:startTimeRange, end:endTimeRange});
+            interaction.setTimeBounds({start:startTimeRange, end:endTimeRange});
         };
 
         onResize();

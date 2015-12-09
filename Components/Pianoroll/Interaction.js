@@ -11,7 +11,6 @@ function Interaction(interactionParent, transformState, horizontalZoomBounds, re
     const noteNavigationRect = createSVGElement('rect', {x: horizontalZoomBounds.offsetX, y:horizontalZoomBounds.height, fill:'rgba(2, 27, 255, 0.26)'});
     interactionParent.appendChild(noteNavigationRect);
     noteNavigationRect.addEventListener('wheel', onWheel);
-
     const timeNavigationRect = createSVGElement('rect', {x:horizontalZoomBounds.offsetX, y:0, height:horizontalZoomBounds.height, fill:'rgba(62, 227, 255, 0.26)'});
     const freqNavigationRect = createSVGElement('rect', {x:0, y:horizontalZoomBounds.height, width:horizontalZoomBounds.offsetX, fill:'rgba(150, 50, 10, 0.26)'});
     const initialFrequencyAxisHeight = resizableDiv.height - horizontalZoomBounds.height;
@@ -27,8 +26,16 @@ function Interaction(interactionParent, transformState, horizontalZoomBounds, re
     timeNavigationRect.addEventListener('wheel', onWheel);
     freqNavigationRect.addEventListener('wheel', onWheel);
 
+
+
     let pianorollHeight = resizableDiv.height;
     let pianorollWidth = resizableDiv.width;
+    let timeBounds = initialTimeBounds;
+
+    this.setTimeBounds = function (timeBoundsIn) {
+
+        timeBounds = timeBoundsIn;
+    };
 
     this.setSize = function () {
 
@@ -173,8 +180,8 @@ function Interaction(interactionParent, transformState, horizontalZoomBounds, re
     function setTimeBounds(matrix) {
 
         const sixteenthWidth = normalised16thWidth * matrix.a;
-        const startTimeOffset = initialTimeBounds.start.totalSixteenths * sixteenthWidth;
-        const endTimeOffset = (resizableDiv.width - horizontalZoomBounds.offsetX) - (initialTimeBounds.end.totalSixteenths * sixteenthWidth) ;
+        const startTimeOffset = timeBounds.start.totalSixteenths * sixteenthWidth;
+        const endTimeOffset = (resizableDiv.width - horizontalZoomBounds.offsetX) - (timeBounds.end.totalSixteenths * sixteenthWidth) ;
 
         if (matrix.e > startTimeOffset) {
 
@@ -185,7 +192,7 @@ function Interaction(interactionParent, transformState, horizontalZoomBounds, re
             matrix.e = endTimeOffset;
         }
 
-        const sixteenthsCount = initialTimeBounds.end.totalSixteenths - initialTimeBounds.start.totalSixteenths;
+        const sixteenthsCount = timeBounds.end.totalSixteenths - timeBounds.start.totalSixteenths;
         const widthRatio = (resizableDiv.width - horizontalZoomBounds.offsetX) / initialTimeAxisHeight;
         const zoomLimit = (sixteenthsCount / initial16thsCount) * widthRatio;
 

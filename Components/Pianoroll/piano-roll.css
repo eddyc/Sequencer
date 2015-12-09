@@ -29,6 +29,14 @@
     overflow:hidden;
 }
 
+#TimeRangeParent {
+    border:1px solid black;
+    height:100%;
+    top:-1px;
+    position:absolute;
+    overflow:hidden;
+}
+
 #TimeAxisGroup {
 
     transform:scale(1, 1) rotate(0);
@@ -37,6 +45,11 @@
     stroke-width:1;
     stroke:black;
 }
+
+#TimeRangeGroup {
+
+}
+
 
 svg text::selection {
     background: none;
