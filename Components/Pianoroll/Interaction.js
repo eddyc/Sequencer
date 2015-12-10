@@ -16,9 +16,9 @@ function Interaction(interactionParent, transformState, horizontalZoomBounds, re
     const initialFrequencyAxisHeight = resizableDiv.height - horizontalZoomBounds.height;
     const normalisedOctaveHeight = initialFrequencyAxisHeight / octaveBounds.normalisedVisible;
     const normalisedOctaveTotalHeight = normalisedOctaveHeight * octaveBounds.count;
-    const initialTimeAxisHeight = (resizableDiv.width - horizontalZoomBounds.offsetX);
+    const initialTimeAxisWidth = (resizableDiv.width - horizontalZoomBounds.offsetX);
     const initial16thsCount = 16;
-    const normalised16thWidth = initialTimeAxisHeight / initial16thsCount;
+    const normalised16thWidth = initialTimeAxisWidth / initial16thsCount;
 
     interactionParent.appendChild(timeNavigationRect);
     interactionParent.appendChild(freqNavigationRect);
@@ -34,7 +34,17 @@ function Interaction(interactionParent, transformState, horizontalZoomBounds, re
 
     this.setTimeBounds = function (timeBoundsIn) {
 
-        timeBounds = timeBoundsIn;
+        if (timeBoundsIn.start.totalSixteenths != timeBounds.start.totalSixteenths || timeBoundsIn.end.totalSixteenths != timeBounds.end.totalSixteenths) {
+
+            timeBounds = timeBoundsIn;
+
+            const valid = checkTimeBoundsValid();
+
+            if (valid.endValid === false || valid.startValid === false) {
+
+                zoomToTimeBounds(valid);
+            }
+        }
     };
 
     this.setSize = function () {
@@ -151,7 +161,7 @@ function Interaction(interactionParent, transformState, horizontalZoomBounds, re
 
         interactionCallback(matrix);
         const transform = interactionParent.createSVGTransformFromMatrix(matrix);
-
+        // console.log("%f %f %f %f %f %f", matrix.a, matrix.b, matrix.c, matrix.d, matrix.e,matrix.f);
         transformState.transform.baseVal.initialize(transform);
     }
 
@@ -179,26 +189,101 @@ function Interaction(interactionParent, transformState, horizontalZoomBounds, re
 
     function setTimeBounds(matrix) {
 
-        const sixteenthWidth = normalised16thWidth * matrix.a;
-        const startTimeOffset = timeBounds.start.totalSixteenths * sixteenthWidth;
-        const endTimeOffset = (resizableDiv.width - horizontalZoomBounds.offsetX) - (timeBounds.end.totalSixteenths * sixteenthWidth) ;
-
-        if (matrix.e > startTimeOffset) {
-
-            matrix.e = startTimeOffset;
-        }
-        else if (matrix.e < endTimeOffset) {
-
-            matrix.e = endTimeOffset;
-        }
-
         const sixteenthsCount = timeBounds.end.totalSixteenths - timeBounds.start.totalSixteenths;
-        const widthRatio = (resizableDiv.width - horizontalZoomBounds.offsetX) / initialTimeAxisHeight;
-        const zoomLimit = (sixteenthsCount / initial16thsCount) * widthRatio;
+        const widthRatio = (resizableDiv.width - horizontalZoomBounds.offsetX) / initialTimeAxisWidth;
+        const zoomLimit = (initial16thsCount / sixteenthsCount) * widthRatio;
 
         if (matrix.a < zoomLimit) {
 
             matrix.a = zoomLimit;
         }
+
+        const sixteenthWidth = normalised16thWidth * matrix.a;
+        const startTimeOffset = -timeBounds.start.totalSixteenths * sixteenthWidth;
+        const endTimeOffset = (resizableDiv.width - horizontalZoomBounds.offsetX) - (timeBounds.end.totalSixteenths * sixteenthWidth) ;
+
+        console.log("%f %f %f", sixteenthWidth, startTimeOffset, endTimeOffset);
+        if (matrix.e > startTimeOffset) {
+
+            matrix.e = startTimeOffset;
+        }
+        if (matrix.e < endTimeOffset) {
+
+            matrix.e = endTimeOffset;
+        }
+
+
+    }
+
+    function checkTimeBoundsValid() {
+
+        let startValid = true;
+        let endValid = true;
+
+        const matrix = transformState.getCTM();
+        const offsetX = matrix.e;
+        const zoomX = matrix.a;
+
+
+        const startTimeOffset = -timeBounds.start.totalSixteenths * normalised16thWidth * zoomX;
+
+        if (startTimeOffset < offsetX) {
+
+            startValid = false;
+        }
+        const timeAxisWidth = (resizableDiv.width - horizontalZoomBounds.offsetX);
+        const endTimeOffset = -timeBounds.end.totalSixteenths * normalised16thWidth * zoomX + timeAxisWidth;
+
+        if (endTimeOffset > offsetX ) {
+
+            endValid = false;
+        }
+
+        return {startValid:startValid, startTime:startTimeOffset, endValid:endValid, endTime:endTimeOffset};
+    }
+
+    function zoomToTimeBounds(valid) {
+
+        let matrix = transformState.getCTM();
+        const timeAxisWidth = (resizableDiv.width - horizontalZoomBounds.offsetX);
+        const offsetX = matrix.e;
+        const zoomX = matrix.a;
+
+        let widthMultiple, sixteenthPosition;
+        let destination = interactionParent.createSVGPoint();
+
+        function doPan() {
+
+            destination.y = 0;
+            widthMultiple =  timeAxisWidth / sixteenthPosition;
+
+
+            const focus = destination.matrixTransform(matrix.inverse());
+
+            const d = matrix.d;
+
+            matrix = matrix.scale(widthMultiple);
+
+            matrix.d = d;
+
+            pan(destination, focus, matrix);
+
+        }
+
+        if (valid.endValid === false) {
+
+            sixteenthPosition = timeBounds.end.totalSixteenths * normalised16thWidth * zoomX + offsetX;
+            destination.x = 0;
+            doPan();
+        }
+
+        if (valid.startValid === false) {
+
+            sixteenthPosition = timeAxisWidth - (timeBounds.start.totalSixteenths * normalised16thWidth * zoomX + offsetX);
+            destination.x = timeAxisWidth;
+            doPan();
+        }
+
+
     }
 }
