@@ -88,7 +88,6 @@ function Interaction(interactionParent, transformState, horizontalZoomBounds, re
         pianorollWidth = resizableDiv.width;
     };
 
-
     function mousePosition(element, event) {
 
         const offsetX = event.offsetX || event.layerX || 0;
@@ -97,7 +96,6 @@ function Interaction(interactionParent, transformState, horizontalZoomBounds, re
 
         return position;
     }
-
 
     function onWheel(event) {
 
@@ -207,11 +205,11 @@ function Interaction(interactionParent, transformState, horizontalZoomBounds, re
 
             matrix.e = startTimeOffset;
         }
+
         if (matrix.e < endTimeOffset) {
 
             matrix.e = endTimeOffset;
         }
-
 
     }
 

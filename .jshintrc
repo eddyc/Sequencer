@@ -9,9 +9,11 @@
 
     "globals": {
         "ResizableDiv": true,
+        "ResizablePanes": true,
         "TimeAxis": true,
         "FrequencyAxis": true,
         "TimeSignatureControl": true,
+        "TimeSignature": true,
         "TimeRange": true,
         "TimeRangeControl": true,
         "Interaction": true,

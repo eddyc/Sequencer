@@ -58,10 +58,6 @@ function TimeAxis(timeAxisParent, element, horizontalZoomBounds, resizableDiv) {
         zoomX = matrix.a;
         offsetX = matrix.e;
 
-        if (isNaN(zoomX) || isNaN(offsetX)) {
-
-            debugger;
-        }
 
         const calculated = calculateTickCount();
 
@@ -245,7 +241,6 @@ function TimeAxis(timeAxisParent, element, horizontalZoomBounds, resizableDiv) {
     function setTickPositions(tickSpacing, quantisedZoom) {
 
         let offsetModSpacing = offsetX % tickSpacing;
-        // offsetModSpacing = (offsetModSpacing >= 0) ? offsetModSpacing - tickSpacing : offsetModSpacing;
         let firstTickX = (offsetX - offsetModSpacing);
         const tickStart = Math.round(firstTickX / tickSpacing);
         ticks.forEach(function(tick, i) {
