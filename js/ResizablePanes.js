@@ -24,7 +24,13 @@ function ResizablePanes() {
 
     let mouseDown = false;
     let calculated = {horizontal:false, vertical:false};
+    const verticalResizeCallbacks = [];
 
+    this.pushVerticalResizeCallback = function(callback) {
+
+            verticalResizeCallbacks.push(callback);
+    };
+    
     function calculatePosition(percentWidth, percentHeight) {
 
         const onHorizontalMidPoint = percentWidth > horizontalCentre - marginWidth && percentWidth < horizontalCentre + marginWidth && percentHeight < verticalCentre;
@@ -72,6 +78,11 @@ function ResizablePanes() {
                 verticalCentre = percentHeight;
                 topPane.style.height = verticalCentre + "%";
                 bottomPane.style.height = (100 - verticalCentre) + "%";
+
+                verticalResizeCallbacks.forEach(function(callback) {
+
+                    callback();
+                });
             }
             else if (calculated.horizontal === true && calculated.vertical === true) {
 
@@ -81,6 +92,11 @@ function ResizablePanes() {
                 rightPane.style.width = (100 - horizontalCentre) + "%";
                 topPane.style.height = verticalCentre + "%";
                 bottomPane.style.height = (100 - verticalCentre) + "%";
+
+                verticalResizeCallbacks.forEach(function(callback) {
+
+                    callback();
+                });
             }
         }
 

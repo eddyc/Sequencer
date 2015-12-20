@@ -1,66 +1,68 @@
-(function (){
+(function () {
 
     "use strict";
+    function initialise() {
 
-    function initialise(self) {
-
+        const self = this;
         const horizontalZoomBounds = {offsetX:100, height:40};
-
-        const resizableDiv = new ResizableDiv(self.parentElement, self.$.ResizableDiv, self.width, self.height, self.x, self.y, onResize);
-
-        const timeAxis = new TimeAxis(self.$.TimeAxisParent, self.$.TimeAxisGroup, horizontalZoomBounds, resizableDiv);
-
+        const defaultTimeSignature = {numerator:4, denominator:4};
+        const defaultStartTime = {bar:0, beat:0, sixteenth:0, totalSixteenths:0};
+        const defaultEndTime = {bar:1, beat:0, sixteenth:0, totalSixteenths:16};
+        const defaultTimeRange = {start:defaultStartTime, end:defaultEndTime};
         const octaveBounds = {count:3, normalisedVisible:2};
 
-        const timeBounds = {start:{bars:0, beats:0, sixteenths:0, totalSixteenths:0}, end:{bars:1, beats:0, sixteenths:0, totalSixteenths:16}};
+        const timeSignatureControl = new TimeSignature(defaultTimeSignature);
+        const timeRangeControl = new TimeRange(self.$.TimeRange, defaultTimeRange, defaultTimeSignature);
+        timeSignatureControl.pushChangedCallback(timeRangeControl.timeSignatureChanged);
+        timeSignatureControl.pushChangedCallback(timeSignatureChanged);
+        timeRangeControl.pushChangedCallback(timeRangeChanged);
 
-        const frequencyAxis = new FrequencyAxis(self.$.FrequencyAxisParent, self.$.FrequencyAxisGroup, horizontalZoomBounds, resizableDiv, octaveBounds);
+        const frequencyAxis = new FrequencyAxis(self.$.FrequencyAxisMask, self.$.FrequencyAxisGroup, horizontalZoomBounds, self.$.Pianoroll, octaveBounds);
 
-        const interaction = new Interaction(self.$.InteractionParent, self.$.TransformState, horizontalZoomBounds, resizableDiv, onInteraction, octaveBounds, timeBounds);
-        const timeRange = new TimeRange(self.$.InteractionParent, self.$.TimeRangeMask, self.$.TimeRangeGroup, horizontalZoomBounds, resizableDiv, timeBounds);
-
+        const timeAxis = new TimeAxis(self.$.TimeAxisMask, self.$.TimeAxisGroup, horizontalZoomBounds, self.$.Pianoroll, defaultTimeSignature, defaultTimeRange);
         timeAxis.setSize();
-        frequencyAxis.setSize();
 
-        function onResize() {
+        const interaction = new Interaction( self.$.TransformState, horizontalZoomBounds,  self.$.Pianoroll, onInteraction, octaveBounds, defaultTimeRange);
+
+        self.setSize = function() {
 
             timeAxis.setSize();
-            frequencyAxis.rescale();
             interaction.setSize();
+            frequencyAxis.rescale();
+
+        };
+
+        function timeSignatureChanged(timeSignature) {
+
+            timeAxis.setTimeProperties(timeSignature);
+        }
+
+        function timeRangeChanged(timeRange) {
+
+            interaction.setTimeRange(timeRange);
         }
 
         function onInteraction(matrix) {
 
             timeAxis.transform(matrix);
-            timeRange.transform(matrix);
             frequencyAxis.transform(matrix);
         }
 
-        self.timePropertyChanged = function(timeSignature, startTimeRange, endTimeRange) {
-
-            timeAxis.setTimeProperties(timeSignature);
-            timeRange.setTimeBounds({start:startTimeRange, end:endTimeRange});
-            interaction.setTimeBounds({start:startTimeRange, end:endTimeRange});
-        };
-
-        onResize();
+        self.setSize();
     }
 
     Polymer({
 
         is: 'piano-roll',
-        timePropertyChanged:null,
         properties: {
             width:Number,
-            height:Number,
-            x:Number,
-            y:Number
+            height:Number
         },
-
-        ready: function () {
-
-            initialise(this);
-        },
+        initialise:initialise,
+        // ready: function () {
+        //
+        //         initialise(this);
+        // },
 
     });
 })();

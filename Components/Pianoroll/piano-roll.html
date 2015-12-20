@@ -3,28 +3,62 @@
 <dom-module id="piano-roll">
     <template>
         <link rel="stylesheet" href="piano-roll.css"></link>
-        <div id='ResizableDiv'>
-            <svg id='TimeAxisParent'>
-                <g id='TimeAxisGroup' vector-effect="non-scaling-stroke" fill='none' stroke-width='1' stroke='black'></g>
-            </svg>
+        <div id="ParentContainer">
+            <div id="TimePropertiesPanel" class="panel panel-default">
+                <div id="TimePropertiesPanelContent" class="list-group text-center">
+                    <div class="list-group-item">
+                        <h6 class="list-group-item-heading">Time Signature</h6>
+                        <div class="btn-group">
+                            <div id="NumeratorButton" class="btn btn-default btn-sm"></div>
+                            <div id="DenominatorButton" class="btn btn-default btn-sm"></div>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <h6 class="list-group-item-heading">Loop Start</h6>
+                        <div id="Start" class="btn-group">
+                            <div id="StartBar" class="btn btn-default btn-sm"></div>
+                            <div id="StartBeat" class="btn btn-default btn-sm"></div>
+                            <div id="StartSixteenth" class="btn btn-default btn-sm"></div>
+                        </div>
+                    </div>
 
-            <svg id='FrequencyAxisParent'>
+                    <div class="list-group-item">
+                        <h6 class="list-group-item-heading">Loop End</h6>
+                        <div id="End" class="btn-group">
+                            <div id="EndBar" class="btn btn-default btn-sm"></div>
+                            <div id="EndBeat" class="btn btn-default btn-sm"></div>
+                            <div id="EndSixteenth" class="btn btn-default btn-sm"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <svg id="Pianoroll">
+
+                <g id='FrequencyAxisMask'>
+                    <g id='FrequencyAxisGroup' vector-effect="non-scaling-stroke" fill='none' stroke-width='1' stroke='black'></g>
+                </g>
+                <g id='TimeAxisMask'>
+                    <g id='TimeAxisGroup' vector-effect="non-scaling-stroke" fill='none' stroke-width='1' stroke='black'></g>
+                </g>
+
+                <g id='TransformState'></g>
+                <!-- <svg id='FrequencyAxisParent'>
                 <g id='FrequencyAxisGroup' vector-effect="non-scaling-stroke" fill='none' stroke-width='1' stroke='black'></g>
             </svg>
             <svg id='InteractionParent'>
-                <g id='TransformState'></g>
-                <g id='TimeRangeMask'>
-                    <g id='TimeRangeGroup' vector-effect="non-scaling-stroke" fill='none' transform='translate(0, 0) scale(1, 1)'></g>
-                </g>
-            </svg>
-        </div>
-    </template>
+            <g id='TimeRangeMask'>
+            <g id='TimeRangeGroup' vector-effect="non-scaling-stroke" fill='none' transform='translate(0, 0) scale(1, 1)'></g>
+        </g>
+    </svg> -->
+</svg>
+</div>
+</template>
 </dom-module>
 
 <script src="HelperFunctions.js"></script>
-<script src="ResizableDiv.js"></script>
 <script src="Interaction.js"></script>
-<script src="Pianoroll.js"></script>
-<script src="TimeAxis.js"></script>
+<script src="TimeSignature.js"></script>
 <script src="TimeRange.js"></script>
 <script src="FrequencyAxis.js"></script>
+<script src="TimeAxis.js"></script>
+<script src="Pianoroll.js"></script>

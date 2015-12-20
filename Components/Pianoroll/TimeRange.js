@@ -1,67 +1,145 @@
 /* exported TimeRange */
 
-function TimeRange(interactionParent, mask, element, horizontalZoomBounds, resizableDiv, initialTimeBounds) {
+function TimeRange(timeRangeDiv, defaultTimeRange, defaultTimeSignature) {
 
     "use strict";
 
-    const rangeLineHeight = 10;
-    const rangeLineY = horizontalZoomBounds.height - rangeLineHeight;
-    const rangeLine = createSVGElement('rect', {height:rangeLineHeight, y:rangeLineY, fill:'red'});
-    const startLine = createSVGElement('line', {y1:horizontalZoomBounds.height - rangeLineHeight, y2:resizableDiv.height, stroke:'red', 'stroke-width':'1', 'vector-effect':'non-scaling-stroke'});
-    const endLine = createSVGElement('line', {y1:horizontalZoomBounds.height - rangeLineHeight, y2:resizableDiv.height, stroke:'red', 'stroke-width':'1', 'vector-effect':'non-scaling-stroke'});
-    element.appendChild(rangeLine);
-    element.appendChild(startLine);
-    element.appendChild(endLine);
+    const  timeRange = defaultTimeRange;
+    let timeSignature = defaultTimeSignature;
 
-    const initial16thsCount = initialTimeBounds.end.totalSixteenths - initialTimeBounds.start.totalSixteenths;
-    const normalised16thWidth = (resizableDiv.width - horizontalZoomBounds.offsetX)/initial16thsCount;
-    const positions = getNormalisedRangePositions(initialTimeBounds);
-    const width = positions.end - positions.start;
-    rangeLine.setAttribute('width', width);
-    startLine.setAttribute('x1', positions.start);
-    startLine.setAttribute('x2', positions.start);
-    endLine.setAttribute('x1', positions.end);
-    endLine.setAttribute('x2', positions.end);
-    element.setAttribute('transform', 'translate(' + horizontalZoomBounds.offsetX + ', 0)');
+    const startTimePoint = instantiateTimePoint("Start", timeRange.start);
+    const endTimePoint = instantiateTimePoint("End", timeRange.end);
+    const valueStepSize = 10;
 
+    const changedCallbacks = [];
 
-    const maskParent = createSVGElement('defs');
-    const clipPath = createSVGElement('clipPath');
-    clipPath.id = "timeRangeMask";
-    maskParent.appendChild(clipPath);
-    const maskRectangle = createSVGElement('rect', {x:horizontalZoomBounds.offsetX, y:0, width:resizableDiv.width - horizontalZoomBounds.offsetX, height:resizableDiv.height});
-    clipPath.appendChild(maskRectangle);
-    mask.appendChild(maskParent);
+    this.pushChangedCallback = function(callback) {
 
-    mask.setAttribute('clip-path', 'url(#' + clipPath.id + ')');
-
-
-    this.setTimeBounds = function(timeBoundsIn) {
-
-        const positions = getNormalisedRangePositions(timeBoundsIn);
-        const width = positions.end - positions.start;
-        rangeLine.setAttribute('x', positions.start);
-        rangeLine.setAttribute('width', width);
-        startLine.setAttribute('x1', positions.start);
-        startLine.setAttribute('x2', positions.start);
-        endLine.setAttribute('x1', positions.end);
-        endLine.setAttribute('x2', positions.end);
+        changedCallbacks.push(callback);
     };
 
-    this.transform = function (matrix) {
+    this.timeSignatureChanged = function(timeSignatureIn) {
 
-        startLine.setAttribute('y2', resizableDiv.height);
-        endLine.setAttribute('y2', resizableDiv.height);
-        maskRectangle.setAttribute('height', resizableDiv.height);
-        maskRectangle.setAttribute('width', resizableDiv.width - horizontalZoomBounds.offsetX);
+        timeSignature = timeSignatureIn;
 
-        element.setAttribute('transform', 'translate(' + (horizontalZoomBounds.offsetX + matrix.e) + ', 0)' + 'scale(' + matrix.a + ', 1)');
+        const sixteenthsPerBeat = 16 / timeSignature.denominator;
+        const sixteenthsPerBar = sixteenthsPerBeat * timeSignature.numerator;
+        setTimeRangeTotalSixteenths(sixteenthsPerBeat, sixteenthsPerBar, timeRange.start, timeRange.start.totalSixteenths);
+        setTimeRangeTotalSixteenths(sixteenthsPerBeat, sixteenthsPerBar, timeRange.end, timeRange.end.totalSixteenths);
+        setNumberDisplay();
     };
 
-    function getNormalisedRangePositions(timeBoundsIn) {
+    function setTimeRangeTotalSixteenths(sixteenthsPerBeat, sixteenthsPerBar, timeRangePoint, totalSixteenths) {
 
-        const startPosition = timeBoundsIn.start.totalSixteenths * normalised16thWidth;
-        const endPosition = timeBoundsIn.end.totalSixteenths * normalised16thWidth;
-        return {start:startPosition, end:endPosition};
+        let sixteenths = totalSixteenths;
+
+        timeRangePoint.bar = Math.floor(sixteenths / sixteenthsPerBar);
+        sixteenths -= timeRangePoint.bar * sixteenthsPerBar;
+        timeRangePoint.beat = Math.floor(sixteenths / sixteenthsPerBeat);
+        sixteenths -= timeRangePoint.beat * sixteenthsPerBeat;
+        timeRangePoint.sixteenth = sixteenths;
+        timeRangePoint.totalSixteenths = totalSixteenths;
+    }
+
+    function instantiateNumberDiv(divId, number) {
+
+        const numberDiv = document.getElementById(divId);
+        numberDiv.addEventListener('mousedown', mouseDown);
+        numberDiv.innerHTML = number;
+        return numberDiv;
+    }
+
+    function instantiateTimePoint(numberId, timePointData) {
+
+        const bar = instantiateNumberDiv(numberId + "Bar", timePointData.bar);
+        const beat = instantiateNumberDiv(numberId + "Beat", timePointData.beat);
+        const sixteenth = instantiateNumberDiv(numberId + "Sixteenth", timePointData.sixteenth);
+
+        return {
+            beat:beat,
+            bar:bar,
+            sixteenth:sixteenth
+        };
+    }
+
+    function mouseDown(event) {
+
+        document.addEventListener('mousemove', mouseMove);
+        document.addEventListener('mouseup', mouseUp);
+
+        const sixteenthsPerBeat = 16 / timeSignature.denominator;
+        const sixteenthsPerBar = sixteenthsPerBeat * timeSignature.numerator;
+
+        const callingElement = event.currentTarget;
+        let position = event.clientY;
+        const idString = callingElement.parentElement.id;
+        const isStartTime = idString.localeCompare("Start") === 0 ? true : false;
+        const initialTotalSixteenthsValue = isStartTime ? timeRange.start.totalSixteenths : timeRange.end.totalSixteenths;
+        const timeRangePoint = isStartTime ? timeRange.start : timeRange.end;
+
+        function mouseMove(event) {
+
+            const deltaY = position - event.clientY;
+            const step = Math.round(deltaY / valueStepSize);
+            let sixteenthsValue = 0;
+
+            if (callingElement === startTimePoint.sixteenth || callingElement === endTimePoint.sixteenth) {
+
+                sixteenthsValue = step + initialTotalSixteenthsValue;
+            }
+            else if (callingElement === startTimePoint.beat || callingElement === endTimePoint.beat) {
+
+                sixteenthsValue = step * sixteenthsPerBeat + initialTotalSixteenthsValue;
+            }
+            else if (callingElement === startTimePoint.bar || callingElement === endTimePoint.bar) {
+
+                sixteenthsValue = step * sixteenthsPerBar + initialTotalSixteenthsValue;
+            }
+
+            if (isStartTime) {
+
+                const endSixteenth = timeRange.end.totalSixteenths;
+                if (sixteenthsValue > endSixteenth - 1) {
+
+                    sixteenthsValue = endSixteenth - 1;
+                }
+            }
+            else {
+
+                const startSixteenth = timeRange.start.totalSixteenths;
+
+                if (sixteenthsValue <  startSixteenth + 1) {
+
+                    sixteenthsValue = startSixteenth + 1;
+                }
+            }
+
+            setTimeRangeTotalSixteenths(sixteenthsPerBeat, sixteenthsPerBar, timeRangePoint, sixteenthsValue);
+            setNumberDisplay(isStartTime);
+
+            changedCallbacks.forEach(function(callback) {
+
+                callback(timeRange);
+            });
+        }
+
+        function mouseUp() {
+
+            document.removeEventListener('mousemove', mouseMove);
+            document.removeEventListener('mouseup', mouseUp);
+        }
+    }
+
+    function setNumberDisplay() {
+
+        function getNumbers(timePoint, timeRangeObject) {
+
+            timePoint.bar.innerHTML = timeRangeObject.bar;
+            timePoint.beat.innerHTML = timeRangeObject.beat;
+            timePoint.sixteenth.innerHTML = timeRangeObject.sixteenth;
+        }
+
+        getNumbers(startTimePoint, timeRange.start);
+        getNumbers(endTimePoint, timeRange.end);
     }
 }

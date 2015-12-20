@@ -1,30 +1,32 @@
 /* exported TimeAxis */
-
-function TimeAxis(timeAxisParent, element, horizontalZoomBounds, resizableDiv) {
+function TimeAxis(mask, element, horizontalZoomBounds, svgParent, defaultTimeSignature, defaultTimeRange) {
 
     "use strict";
-    timeAxisParent.style.left = horizontalZoomBounds.offsetX + 'px';
-    timeAxisParent.style.width = 'calc(100% - ' + (horizontalZoomBounds.offsetX + 1) + 'px)';
+
+    const maskParent = createSVGElement('defs');
+    const clipPath = createSVGElement('clipPath');
+    clipPath.id = "timeRangeMask";
+    maskParent.appendChild(clipPath);
+    const maskRectangle = createSVGElement('rect', {x:horizontalZoomBounds.offsetX, y:0, width:svgParent.clientWidth - horizontalZoomBounds.offsetX, height:svgParent.clientHeight});
+    clipPath.appendChild(maskRectangle);
+    mask.appendChild(maskParent);
+
+    mask.setAttribute('clip-path', 'url(#' + clipPath.id + ')');
+
+    element.setAttribute('transform', 'translate(' + horizontalZoomBounds.offsetX + ', 0)');
 
     const axisLineHeight = 10;
     const axisLineY = horizontalZoomBounds.height - axisLineHeight;
     const axisLine = createSVGElement('rect', {height:axisLineHeight, y:axisLineY, fill:'black'});
     element.appendChild(axisLine);
 
-
-    const ticks = [];
-    const defaultStartTime = {bars:0, beats:0, sixteenths:0, totalSixteenths:0};
-    const defaultEndTime = {bars:1, beats:0, sixteenths:0, totalSixteenths:16};
-
-    const unityZoomTickWidth = (resizableDiv.width - horizontalZoomBounds.offsetX) / (defaultEndTime.totalSixteenths - defaultStartTime.totalSixteenths);
-
-    const defaultTimeSignature = {numerator:4, denominator:4};
+    const unityZoomTickWidth = (svgParent.clientWidth - horizontalZoomBounds.offsetX) / (defaultTimeRange.end.totalSixteenths - defaultTimeRange.start.totalSixteenths);
 
     let offsetX = 0;
     let zoomX = 1;
 
-
     let timeSignature = defaultTimeSignature;
+    const ticks = [];
 
     this.setTimeProperties = function(timeSignatureIn) {
 
@@ -38,13 +40,14 @@ function TimeAxis(timeAxisParent, element, horizontalZoomBounds, resizableDiv) {
 
     this.setSize = function() {
 
-        const width = resizableDiv.width - horizontalZoomBounds.offsetX;
+        const width = svgParent.clientWidth - horizontalZoomBounds.offsetX;
         axisLine.setAttribute('width', width);
 
         const calculated = calculateTickCount();
 
         const ticksAdjusted = adjustTickCount(calculated.tickCount);
         setTickHeights();
+        setMaskSize();
 
         if (ticksAdjusted) {
 
@@ -82,7 +85,7 @@ function TimeAxis(timeAxisParent, element, horizontalZoomBounds, resizableDiv) {
 
     function calculateTickCount() {
 
-        const width = resizableDiv.width - horizontalZoomBounds.offsetX;
+        const width = svgParent.clientWidth - horizontalZoomBounds.offsetX;
         const quantisedZoom = getQuantisedZoom();
         const tickSpacing = getTickSpacing(quantisedZoom);
         const tickCount = Math.ceil(width / tickSpacing) + 1;
@@ -91,10 +94,10 @@ function TimeAxis(timeAxisParent, element, horizontalZoomBounds, resizableDiv) {
 
     function createTick() {
 
-        const height = resizableDiv.height;
+        const height = svgParent.clientHeight;
         const tickGroup = createSVGElement('g');
         const line = createSVGElement('line', {x1:0, x2:0, y2:height, 'vector-effect':'inherit'});
-        const text = createSVGElement('text', {y:17, x:2, 'text-anchor':'right', 'font-family':'Verdana', 'font-size':10, fill:'black'});
+        const text = createSVGElement('text', {y:17, x:2, 'text-anchor':'right', 'font-family':'Helvetica', 'font-weight':'normal', 'font-size':11, fill:'black', stroke:'none'});
 
         tickGroup.appendChild(line);
         tickGroup.appendChild(text);
@@ -137,8 +140,14 @@ function TimeAxis(timeAxisParent, element, horizontalZoomBounds, resizableDiv) {
 
         for (let tick of ticks) {
 
-            tick.line.setAttribute('y2', resizableDiv.height);
+            tick.line.setAttribute('y2', svgParent.clientHeight);
         }
+    }
+
+    function setMaskSize() {
+
+        maskRectangle.setAttribute('width', svgParent.clientWidth - horizontalZoomBounds.offsetX);
+        maskRectangle.setAttribute('height', svgParent.clientHeight);
     }
 
     function getTickNumbers(sixteenthIndex) {
@@ -255,4 +264,6 @@ function TimeAxis(timeAxisParent, element, horizontalZoomBounds, resizableDiv) {
             firstTickX -= tickSpacing;
         });
     }
+
+
 }

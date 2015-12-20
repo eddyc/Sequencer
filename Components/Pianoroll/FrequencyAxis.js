@@ -1,15 +1,25 @@
 /* exported FrequencyAxis */
 
-function FrequencyAxis(frequencyAxisParent, element, horizontalZoomBounds, resizableDiv, octaveBounds) {
+function FrequencyAxis(mask, element, horizontalZoomBounds, svgParent, octaveBounds) {
 
     "use strict";
 
-    frequencyAxisParent.style.top = horizontalZoomBounds.height + 'px';
-    frequencyAxisParent.style.height = 'calc(100% - ' + (horizontalZoomBounds.height + 1) + 'px)';
+    const maskParent = createSVGElement('defs');
+    const clipPath = createSVGElement('clipPath');
+    clipPath.id = "frequencyRangeMask";
+    maskParent.appendChild(clipPath);
+    const maskRectangle = createSVGElement('rect', {x:0, y:horizontalZoomBounds.height, width:svgParent.clientWidth, height:svgParent.clientHeight - horizontalZoomBounds.height});
+    clipPath.appendChild(maskRectangle);
+    mask.appendChild(maskParent);
+
+    mask.setAttribute('clip-path', 'url(#' + clipPath.id + ')');
+
+    element.setAttribute('transform', 'translate(0, ' + horizontalZoomBounds.height + ')');
+
 
     const noteIsBlack = [false, true, false, true, false, true, false, false, true, false, true, false];
-    const defaultGraphWidth = resizableDiv.width - horizontalZoomBounds.offsetX;
-    const normalisedHeight = resizableDiv.height - horizontalZoomBounds.height;
+    const defaultGraphWidth = svgParent.clientWidth - horizontalZoomBounds.offsetX;
+    const normalisedHeight = svgParent.clientHeight - horizontalZoomBounds.height;
     const normalisedOctaveSpacing = normalisedHeight / octaveBounds.normalisedVisible;
     const noteAxisGroupOffsetX = horizontalZoomBounds.offsetX * 0.3;
 
@@ -20,7 +30,8 @@ function FrequencyAxis(frequencyAxisParent, element, horizontalZoomBounds, resiz
 
     this.setSize = function() {
 
-        const height = resizableDiv.height - horizontalZoomBounds.height;
+        const height = svgParent.clientHeight - horizontalZoomBounds.height;
+
 
         const octaveSpacing = normalisedOctaveSpacing * zoomY;
         const octaveCount = Math.ceil(height / octaveSpacing) + 1;
@@ -39,9 +50,17 @@ function FrequencyAxis(frequencyAxisParent, element, horizontalZoomBounds, resiz
         }
     };
 
+    function resizeMask(height, width) {
+
+        maskRectangle.setAttribute('height', height);
+        maskRectangle.setAttribute('width', width);
+    }
+
     this.rescale = function() {
 
         setOctaveWidths();
+        resizeMask(svgParent.clientHeight - horizontalZoomBounds.height, svgParent.clientWidth);
+
     };
 
     this.transform = function(matrix) {
@@ -49,7 +68,7 @@ function FrequencyAxis(frequencyAxisParent, element, horizontalZoomBounds, resiz
         zoomY = matrix.d;
         offsetY = matrix.f;
 
-        const height = resizableDiv.height - horizontalZoomBounds.height;
+        const height = svgParent.clientHeight - horizontalZoomBounds.height;
 
         const octaveSpacing = normalisedOctaveSpacing * zoomY;
         const octaveCount = Math.ceil(height / octaveSpacing) + 1;
@@ -82,7 +101,7 @@ function FrequencyAxis(frequencyAxisParent, element, horizontalZoomBounds, resiz
 
             const freqAxisRect = createSVGElement('rect', {width:horizontalZoomBounds.offsetX + 1 - noteAxisGroupOffsetX, height:noteHeight, x:noteAxisGroupOffsetX,  y:noteHeight * i, fill:axisColour, 'vector-effect':'non-scaling-stroke'});
 
-            const freqGraphRect = createSVGElement('rect', {width:resizableDiv.width - horizontalZoomBounds.offsetX, height:noteHeight, y:noteHeight * i, stroke:'rgba(0, 0, 0, 0.2)' , fill:graphColour, transform:'scale(1, 1)',  'vector-effect':'non-scaling-stroke'});
+            const freqGraphRect = createSVGElement('rect', {width:svgParent.clientWidth - horizontalZoomBounds.offsetX, height:noteHeight, y:noteHeight * i, stroke:'rgba(0, 0, 0, 0.2)' , fill:graphColour, transform:'scale(1, 1)',  'vector-effect':'non-scaling-stroke'});
 
             noteAxisGroup.appendChild(freqAxisRect);
             noteGraphGroup.appendChild(freqGraphRect);
@@ -123,7 +142,7 @@ function FrequencyAxis(frequencyAxisParent, element, horizontalZoomBounds, resiz
 
     function setOctaveWidths() {
 
-        let newGraphWidth = resizableDiv.width - horizontalZoomBounds.offsetX;
+        let newGraphWidth = svgParent.clientWidth - horizontalZoomBounds.offsetX;
 
         widthZoom = newGraphWidth / defaultGraphWidth;
 
@@ -133,6 +152,10 @@ function FrequencyAxis(frequencyAxisParent, element, horizontalZoomBounds, resiz
         }
     }
 
+    function setOctaveNumber(number) {
+        
+    }
+
     function setOctavePositions(octaveSpacing) {
 
         let offsetModSpacing = offsetY % octaveSpacing;
@@ -140,7 +163,6 @@ function FrequencyAxis(frequencyAxisParent, element, horizontalZoomBounds, resiz
 
         let firstOctaveY = (offsetY - offsetModSpacing);
         const octaveStart = firstOctaveY / octaveSpacing;
-
         for (let i = 0; i < octaves.length; ++i) {
 
             const octave = octaves[i];
@@ -150,4 +172,5 @@ function FrequencyAxis(frequencyAxisParent, element, horizontalZoomBounds, resiz
             firstOctaveY -= octaveSpacing;
         }
     }
+
 }
