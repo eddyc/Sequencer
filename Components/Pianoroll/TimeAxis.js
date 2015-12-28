@@ -265,5 +265,11 @@ function TimeAxis(mask, element, horizontalZoomBounds, svgParent, defaultTimeSig
         });
     }
 
+    this.getTimePosition = function(position) {
 
+        const width = svgParent.clientWidth - horizontalZoomBounds.offsetX;
+        const time = (offsetX + position.x - horizontalZoomBounds.offsetX) / width;
+
+        return time;
+    };
 }

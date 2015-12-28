@@ -1,0 +1,5 @@
+/* exported NoteObject */
+function NoteObject() {
+
+    
+}

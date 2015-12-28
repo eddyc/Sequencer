@@ -1,6 +1,6 @@
 /* exported Interaction */
 
-function Interaction(transformState, horizontalZoomBounds, svgParent, interactionCallback, octaveBounds, defaultTimeRange) {
+function Interaction(transformState, horizontalZoomBounds, svgParent, interactionCallback, doubleClickCallback, mouseMoveCallback, octaveBounds, defaultTimeRange) {
 
     "use strict";
 
@@ -22,27 +22,47 @@ function Interaction(transformState, horizontalZoomBounds, svgParent, interactio
     timeNavigationRect.addEventListener('wheel', onWheel);
     freqNavigationRect.addEventListener('wheel', onWheel);
 
+    svgParent.addEventListener('mousemove', function(event) {
 
+        const position = mousePosition(svgParent, event);
+        mouseMoveCallback(position);
+    });
+
+    svgParent.addEventListener('dblclick', function(evt) {
+
+        const position = mousePosition(svgParent, evt);
+
+        doubleClickCallback(position);
+    });
+
+    svgParent.addEventListener('click', function() {
+
+    });
+
+    svgParent.addEventListener('mousedown', function() {
+
+    });
+
+    svgParent.addEventListener('wheel', function() {
+
+    });
+
+    const minFrequencyScale = 1/2;
+    const maxFrequencyScale = 8;
 
     let pianorollHeight = svgParent.clientHeight;
     let pianorollWidth = svgParent.clientWidth;
     let timeRange = defaultTimeRange;
 
-    this.setTimeRange = function (timeRangeIn) {
+    this.setTimeRange = function () {
 
-        // if (timeRangeIn.start.totalSixteenths != timeRange.start.totalSixteenths || timeRangeIn.end.totalSixteenths != timeRange.end.totalSixteenths) {
-        //
-        //     timeRange = timeRangeIn;
+        const valid = checkTimeRangeValid();
 
-            const valid = checkTimeRangeValid();
+        if (valid.endValid === false || valid.startValid === false) {
 
-            if (valid.endValid === false || valid.startValid === false) {
-
-                zoomToTimeRange(valid);
-            }
-        // }
+            zoomToTimeRange(valid);
+        }
     };
-
 
     this.setSize = function () {
 
@@ -70,7 +90,14 @@ function Interaction(transformState, horizontalZoomBounds, svgParent, interactio
 
         const a = matrix.a;
 
-        matrix = matrix.scale(heightMultiple);
+        let matrixCopy = matrix;
+
+        matrixCopy = matrixCopy.scale(heightMultiple);
+
+        if (matrixCopy.d > minFrequencyScale && matrixCopy.d < maxFrequencyScale) {
+
+            matrix = matrixCopy;
+        }
 
         matrix.a = a;
 
@@ -131,18 +158,26 @@ function Interaction(transformState, horizontalZoomBounds, svgParent, interactio
             destination.y = temp.y - horizontalZoomBounds.height;
 
             focus = destination.matrixTransform(matrix.inverse());
-
+            // console.log("%f %f %f", matrix.d, minFrequencyScale, maxFrequencyScale);
             const zoomFactor = Math.pow(1.1, event.wheelDeltaX / 56);
-            const a = matrix.a;
+            let matrixCopy = matrix;
 
-            matrix = matrix.scale(zoomFactor);
+            const a = matrixCopy.a;
+
+            matrixCopy = matrixCopy.scale(zoomFactor);
+
+            if (matrixCopy.d > minFrequencyScale && matrixCopy.d < maxFrequencyScale) {
+
+                matrix = matrixCopy;
+            }
 
             focus.y -= (event.wheelDeltaY / 4) / matrix.d;
             matrix.a = a;
         }
 
         pan(destination, focus, matrix);
-
+        const position = mousePosition(svgParent, event);
+        mouseMoveCallback(position);
     }
 
     function pan(destination, origin, matrix) {
@@ -197,7 +232,6 @@ function Interaction(transformState, horizontalZoomBounds, svgParent, interactio
         const startTimeOffset = -timeRange.start.totalSixteenths * sixteenthWidth;
         const endTimeOffset = (svgParent.clientWidth - horizontalZoomBounds.offsetX) - (timeRange.end.totalSixteenths * sixteenthWidth) ;
 
-        // console.log("%f %f %f", sixteenthWidth, startTimeOffset, endTimeOffset);
         if (matrix.e > startTimeOffset) {
 
             matrix.e = startTimeOffset;
@@ -207,7 +241,6 @@ function Interaction(transformState, horizontalZoomBounds, svgParent, interactio
 
             matrix.e = endTimeOffset;
         }
-
     }
 
     function checkTimeRangeValid() {

@@ -8,18 +8,18 @@
     "devel":true,
 
     "globals": {
-        "ResizableDiv": true,
         "ResizablePanes": true,
         "TimeAxis": true,
         "FrequencyAxis": true,
-        "TimeSignatureControl": true,
+        "NoteObject": true,
+        "NoteLayer": true,
         "TimeSignature": true,
         "TimeRange": true,
-        "TimeRangeControl": true,
         "Interaction": true,
         "$": false,
         "jQuery": false,
         "Polymer": true,
+        "setSVGElement": true,
         "createSVGElement": true
     }
 }

@@ -18,67 +18,34 @@ function FrequencyAxis(mask, element, horizontalZoomBounds, svgParent, octaveBou
 
 
     const noteIsBlack = [false, true, false, true, false, true, false, false, true, false, true, false];
+    const noteName = ['B', 'A#', 'A', 'G#', 'G', 'F#', 'F', 'E', 'D#', 'D', 'C#', 'C'];
+
+
     const defaultGraphWidth = svgParent.clientWidth - horizontalZoomBounds.offsetX;
     const normalisedHeight = svgParent.clientHeight - horizontalZoomBounds.height;
     const normalisedOctaveSpacing = normalisedHeight / octaveBounds.normalisedVisible;
     const noteAxisGroupOffsetX = horizontalZoomBounds.offsetX * 0.3;
+    const normalisedNoteHeight = normalisedOctaveSpacing / 12;
 
-    let octaves = [];
+    const freqAxisNoteTickGroup = createSVGElement('g');
+    const freqAxisNoteTickLine = createSVGElement('line', {x1:noteAxisGroupOffsetX / 2, x2:noteAxisGroupOffsetX, y1:0, y2:0, 'vector-effect':'non-scaling-stroke'});
+    freqAxisNoteTickGroup.appendChild(freqAxisNoteTickLine);
+    const freqAxisNoteTickText = createSVGElement('text', {x:noteAxisGroupOffsetX / 3, y:-3, 'text-anchor':'right', 'font-family':'Helvetica', 'font-weight':'normal', 'font-size':10, fill:'black', stroke:'none'});
+    freqAxisNoteTickGroup.appendChild(freqAxisNoteTickText);
+    element.appendChild(freqAxisNoteTickGroup);
+
+    const octaves = [];
     let offsetY = 0;
     let zoomY = 1;
     let widthZoom = 1;
+    let activeNoteNumber = null;
 
-    this.setSize = function() {
+    for (let i = 0; i < octaveBounds.count; ++i) {
 
-        const height = svgParent.clientHeight - horizontalZoomBounds.height;
-
-
-        const octaveSpacing = normalisedOctaveSpacing * zoomY;
-        const octaveCount = Math.ceil(height / octaveSpacing) + 1;
-        const octavesAdjusted = adjustOctaveCount(octaveCount);
-        setOctaveWidths();
-
-
-        if (octavesAdjusted === true) {
-
-            setOctavePositions(octaveSpacing);
-            return true;
-        }
-        else {
-
-            return false;
-        }
-    };
-
-    function resizeMask(height, width) {
-
-        maskRectangle.setAttribute('height', height);
-        maskRectangle.setAttribute('width', width);
+        octaves.push(createOctave(i));
     }
 
-    this.rescale = function() {
-
-        setOctaveWidths();
-        resizeMask(svgParent.clientHeight - horizontalZoomBounds.height, svgParent.clientWidth);
-
-    };
-
-    this.transform = function(matrix) {
-
-        zoomY = matrix.d;
-        offsetY = matrix.f;
-
-        const height = svgParent.clientHeight - horizontalZoomBounds.height;
-
-        const octaveSpacing = normalisedOctaveSpacing * zoomY;
-        const octaveCount = Math.ceil(height / octaveSpacing) + 1;
-
-        adjustOctaveCount(octaveCount);
-
-        setOctavePositions(octaveSpacing);
-    };
-
-    function createOctave() {
+    function createOctave(octaveNumber) {
 
         const octaveGroup = createSVGElement('g');
 
@@ -92,52 +59,45 @@ function FrequencyAxis(mask, element, horizontalZoomBounds, svgParent, octaveBou
         scalingGroup.appendChild(noteGraphGroup);
         octaveGroup.appendChild(scalingGroup);
 
-        const noteHeight = normalisedOctaveSpacing / 12;
-
         for (let i = 0; i < 12; ++i) {
 
             const graphColour = noteIsBlack[i] ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0)';
             const axisColour = noteIsBlack[i] ? 'black' : 'white';
 
-            const freqAxisRect = createSVGElement('rect', {width:horizontalZoomBounds.offsetX + 1 - noteAxisGroupOffsetX, height:noteHeight, x:noteAxisGroupOffsetX,  y:noteHeight * i, fill:axisColour, 'vector-effect':'non-scaling-stroke'});
+            const noteString = noteName[i] + (octaveBounds.count - octaveNumber - 1);
 
-            const freqGraphRect = createSVGElement('rect', {width:svgParent.clientWidth - horizontalZoomBounds.offsetX, height:noteHeight, y:noteHeight * i, stroke:'rgba(0, 0, 0, 0.2)' , fill:graphColour, transform:'scale(1, 1)',  'vector-effect':'non-scaling-stroke'});
+            const freqAxisRect = createSVGElement('rect', {width:horizontalZoomBounds.offsetX + 1 - noteAxisGroupOffsetX, height:normalisedNoteHeight, x:noteAxisGroupOffsetX,  y:normalisedNoteHeight * i, fill:axisColour, 'vector-effect':'non-scaling-stroke', 'stroke-alignment':'inside'});
+            freqAxisRect.isAxisPoint = true;
+            freqAxisRect.isNotePoint = true;
+            freqAxisRect.noteString = noteString;
+
+            const freqGraphRect = createSVGElement('rect', {width:svgParent.clientWidth - horizontalZoomBounds.offsetX, height:normalisedNoteHeight, y:normalisedNoteHeight * i, stroke:'rgba(0, 0, 0, 0.2)' , fill:graphColour, transform:'scale(1, 1)',  'vector-effect':'non-scaling-stroke', 'stroke-alignment':'inside'});
+            freqGraphRect.isAxisPoint = false;
+            freqGraphRect.isNotePoint = true;
+            freqGraphRect.noteString = noteString;
 
             noteAxisGroup.appendChild(freqAxisRect);
             noteGraphGroup.appendChild(freqGraphRect);
+
+            freqAxisRect.setActive = freqGraphRect.setActive = function () {
+
+                freqAxisNoteTickGroup.setAttribute('transform', "translate(0, " + ((normalisedNoteHeight * (i + 1) + (octaveNumber * normalisedOctaveSpacing)) + ")"));
+                freqAxisNoteTickText.innerHTML = noteString;
+                activeNoteNumber = noteString;
+            };
         }
 
+        const octaveObject = {mainGroup:octaveGroup, scalingGroup:scalingGroup,  noteGraphGroup:noteGraphGroup};
+        octaveGroup.setAttribute('transform', "translate(0, " + (octaveNumber * normalisedOctaveSpacing) + ")");
         element.appendChild(octaveGroup);
-        return {mainGroup:octaveGroup, scalingGroup:scalingGroup,  noteGraphGroup:noteGraphGroup};
+
+        return octaveObject;
     }
 
-    function adjustOctaveCount(newOctaveCount) {
+    function resizeMask(height, width) {
 
-        let octaveCountAdjusted = false;
-        const octaveCurrentCount = octaves.length;
-
-        if (newOctaveCount > octaveCurrentCount) {
-
-            for (let i = 0; i < newOctaveCount - octaveCurrentCount; ++i) {
-
-                const octave = createOctave();
-                octaves.push(octave);
-            }
-
-            octaveCountAdjusted = true;
-        }
-        else if (newOctaveCount < octaveCurrentCount && newOctaveCount > 0) {
-
-            for (let i = 0; i < octaveCurrentCount - newOctaveCount; ++i) {
-
-                element.removeChild(octaves[octaves.length - 1].mainGroup);
-                octaves.pop();
-            }
-
-            octaveCountAdjusted = true;
-        }
-
-        return octaveCountAdjusted;
+        maskRectangle.setAttribute('height', height);
+        maskRectangle.setAttribute('width', width);
     }
 
     function setOctaveWidths() {
@@ -152,25 +112,63 @@ function FrequencyAxis(mask, element, horizontalZoomBounds, svgParent, octaveBou
         }
     }
 
-    function setOctaveNumber(number) {
-        
-    }
+    this.rescale = function() {
 
-    function setOctavePositions(octaveSpacing) {
+        setOctaveWidths();
+        resizeMask(svgParent.clientHeight - horizontalZoomBounds.height, svgParent.clientWidth);
+        freqAxisNoteTickText.setAttribute('transform', "scale(1, " + (1/zoomY) + ")");
+    };
 
-        let offsetModSpacing = offsetY % octaveSpacing;
-        offsetModSpacing = (offsetModSpacing > 0) ? offsetModSpacing - octaveSpacing : offsetModSpacing;
+    this.transform = function(matrix) {
 
-        let firstOctaveY = (offsetY - offsetModSpacing);
-        const octaveStart = firstOctaveY / octaveSpacing;
-        for (let i = 0; i < octaves.length; ++i) {
+        zoomY = matrix.d;
+        offsetY = matrix.f;
 
-            const octave = octaves[i];
-            const octaveOffsetY = ((i - octaveStart) * octaveSpacing + offsetY);
-            octave.scalingGroup.setAttribute('transform', "translate(0, " + octaveOffsetY + ") scale(1," + zoomY + ")");
+        element.setAttribute('transform', "translate(0, " + (offsetY + horizontalZoomBounds.height)  + ") scale(1," + zoomY + ")");
+        freqAxisNoteTickText.setAttribute('transform', "scale(1, " + (1/zoomY) + ")");
+    };
 
-            firstOctaveY -= octaveSpacing;
+    this.onMouseMove = function(position) {
+
+        const noteElement = getNoteElement(position);
+
+        if (typeof noteElement !== "undefined") {
+
+            noteElement.setActive();
+        }
+    };
+
+    function getNoteElement(position) {
+
+        const rpos = svgParent.createSVGRect();
+        rpos.x = position.x;
+        rpos.y = position.y;
+        rpos.width = rpos.height = 0;
+        const list = svgParent.getIntersectionList(rpos, null);
+
+        let noteElement = null;
+
+        for (let i = 0; i < list.length; i++) {
+
+            if (list[i].isHoverOver === true) {
+
+                noteElement = list[i];
+                return noteElement;
+            }
+        }
+
+        for (let i = 0; i < list.length; i++) {
+
+            if (list[i].isNotePoint === true) {
+
+                noteElement = list[i];
+                return noteElement;
+            }
         }
     }
 
+    this.getFrequencyPosition = function() {
+
+        return activeNoteNumber;
+    };
 }

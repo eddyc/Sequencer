@@ -9,7 +9,7 @@
         const defaultStartTime = {bar:0, beat:0, sixteenth:0, totalSixteenths:0};
         const defaultEndTime = {bar:1, beat:0, sixteenth:0, totalSixteenths:16};
         const defaultTimeRange = {start:defaultStartTime, end:defaultEndTime};
-        const octaveBounds = {count:3, normalisedVisible:2};
+        const octaveBounds = {count:8, normalisedVisible:2};
 
         const timeSignatureControl = new TimeSignature(defaultTimeSignature);
         const timeRangeControl = new TimeRange(self.$.TimeRange, defaultTimeRange, defaultTimeSignature);
@@ -22,14 +22,15 @@
         const timeAxis = new TimeAxis(self.$.TimeAxisMask, self.$.TimeAxisGroup, horizontalZoomBounds, self.$.Pianoroll, defaultTimeSignature, defaultTimeRange);
         timeAxis.setSize();
 
-        const interaction = new Interaction( self.$.TransformState, horizontalZoomBounds,  self.$.Pianoroll, onInteraction, octaveBounds, defaultTimeRange);
+        const interaction = new Interaction(self.$.TransformState, horizontalZoomBounds,  self.$.Pianoroll, onInteraction, onDoubleClick, onMouseMove, octaveBounds, defaultTimeRange);
+
+        const noteLayer = new NoteLayer(self.$.NoteLayerMask, self.$.NoteLayerGroup, horizontalZoomBounds, self.$.Pianoroll);
 
         self.setSize = function() {
 
             timeAxis.setSize();
             interaction.setSize();
             frequencyAxis.rescale();
-
         };
 
         function timeSignatureChanged(timeSignature) {
@@ -48,6 +49,16 @@
             frequencyAxis.transform(matrix);
         }
 
+        function onDoubleClick(position) {
+
+            noteLayer.pushNote(position);
+        }
+
+        function onMouseMove(position) {
+
+            frequencyAxis.onMouseMove(position);
+        }
+
         self.setSize();
     }
 
@@ -59,10 +70,6 @@
             height:Number
         },
         initialise:initialise,
-        // ready: function () {
-        //
-        //         initialise(this);
-        // },
 
     });
 })();

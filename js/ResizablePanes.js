@@ -15,7 +15,7 @@ function ResizablePanes() {
 
     const marginWidth = 1;
     let horizontalCentre = 20;
-    let verticalCentre = 60;
+    let verticalCentre = 20;
 
     leftPane.style.width = horizontalCentre + "%";
     rightPane.style.width = (100 - horizontalCentre) + "%";
@@ -30,7 +30,7 @@ function ResizablePanes() {
 
             verticalResizeCallbacks.push(callback);
     };
-    
+
     function calculatePosition(percentWidth, percentHeight) {
 
         const onHorizontalMidPoint = percentWidth > horizontalCentre - marginWidth && percentWidth < horizontalCentre + marginWidth && percentHeight < verticalCentre;
