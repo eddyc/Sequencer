@@ -20,6 +20,8 @@
         "jQuery": false,
         "Polymer": true,
         "setSVGElement": true,
-        "createSVGElement": true
+        "createSVGElement": true,
+        "Events": true,
+        "csound":true
     }
 }

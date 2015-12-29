@@ -265,11 +265,21 @@ function TimeAxis(mask, element, horizontalZoomBounds, svgParent, defaultTimeSig
         });
     }
 
-    this.getTimePosition = function(position) {
+    this.onMouseMove = function(position) {
 
-        const width = svgParent.clientWidth - horizontalZoomBounds.offsetX;
-        const time = (offsetX + position.x - horizontalZoomBounds.offsetX) / width;
+        const width = (svgParent.clientWidth - horizontalZoomBounds.offsetX) * zoomX;
+        const time = (-offsetX + position.x - horizontalZoomBounds.offsetX) / width;
 
         return time;
+    };
+
+    this.getTimePosition = function(position) {
+
+        return this.onMouseMove(position);
+    };
+
+    this.getZoomLevel = function() {
+
+        return getQuantisedZoom();
     };
 }

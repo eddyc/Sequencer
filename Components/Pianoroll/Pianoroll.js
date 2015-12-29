@@ -51,12 +51,20 @@
 
         function onDoubleClick(position) {
 
-            noteLayer.pushNote(position);
+            const frequency = frequencyAxis.getFrequencyPosition();
+            const time = timeAxis.getTimePosition(position);
+            const quantisedZoom = timeAxis.getZoomLevel();
+            noteLayer.pushNote(frequency, time, quantisedZoom);
         }
 
-        function onMouseMove(position) {
+        function onMouseMove(position, isNoteRect) {
 
             frequencyAxis.onMouseMove(position);
+
+            if (isNoteRect) {
+
+                timeAxis.onMouseMove(position);
+            }
         }
 
         self.setSize();

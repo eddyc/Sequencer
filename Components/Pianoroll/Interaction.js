@@ -22,18 +22,27 @@ function Interaction(transformState, horizontalZoomBounds, svgParent, interactio
     timeNavigationRect.addEventListener('wheel', onWheel);
     freqNavigationRect.addEventListener('wheel', onWheel);
 
-    svgParent.addEventListener('mousemove', function(event) {
+
+    function onMouseMove(event) {
 
         const position = mousePosition(svgParent, event);
-        mouseMoveCallback(position);
-    });
+        const isNoteRect = event.target === noteNavigationRect ? true : false;
 
-    svgParent.addEventListener('dblclick', function(evt) {
+        mouseMoveCallback(position, isNoteRect);
+    }
 
-        const position = mousePosition(svgParent, evt);
+    freqNavigationRect.addEventListener('mousemove', onMouseMove);
+    noteNavigationRect.addEventListener('mousemove', onMouseMove);
 
-        doubleClickCallback(position);
-    });
+    function onDoubleClick(event) {
+
+        const position = mousePosition(svgParent, event);
+        const isNoteRect = event.target === noteNavigationRect ? true : false;
+
+        doubleClickCallback(position, isNoteRect);
+    }
+
+    noteNavigationRect.addEventListener('dblclick', onDoubleClick);
 
     svgParent.addEventListener('click', function() {
 
@@ -177,7 +186,9 @@ function Interaction(transformState, horizontalZoomBounds, svgParent, interactio
 
         pan(destination, focus, matrix);
         const position = mousePosition(svgParent, event);
-        mouseMoveCallback(position);
+        const isNoteRect = event.target === noteNavigationRect ? true : false;
+
+        mouseMoveCallback(position, isNoteRect);
     }
 
     function pan(destination, origin, matrix) {
