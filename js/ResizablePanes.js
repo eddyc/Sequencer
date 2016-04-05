@@ -28,7 +28,7 @@ function ResizablePanes() {
 
     this.pushVerticalResizeCallback = function(callback) {
 
-            verticalResizeCallbacks.push(callback);
+        verticalResizeCallbacks.push(callback);
     };
 
     function calculatePosition(percentWidth, percentHeight) {
@@ -43,7 +43,6 @@ function ResizablePanes() {
 
         const percentWidth = (event.clientX / rootPane.clientWidth) * 100;
         const percentHeight = ((event.clientY - top) / (rootPane.clientHeight)) * 100;
-
 
         if (mouseDown === false) {
 
@@ -109,6 +108,7 @@ function ResizablePanes() {
             mouseDown = true;
         }
     });
+    
     rootPane.addEventListener('mouseup', function() {
 
         rootPane.style.cursor = 'default';

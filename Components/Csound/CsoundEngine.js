@@ -2,7 +2,7 @@
 
     "use strict";
 
-    function moduleDidLoad() {
+    function moduleDidLoad(self) {
 
         console.log("module loaded");
 
@@ -10,10 +10,14 @@
         csound.CompileOrc("instr 1 \n" +
         "icps = 440\n" +
         "chnset icps, \"freq\" \n" +
-        "a1 oscili 0.1, icps\n" +
+        "a1 oscili 0.01, icps\n" +
         "outs a1,a1 \n" +"endin");
 
-        // csound.Event("i 1 " + 0 + " .5");
+    }
+
+    function receivedEvent(delay) {
+
+        csound.Event("i 1 " + delay + " .5");
     }
 
     Polymer({
@@ -21,6 +25,10 @@
         is: 'csound-engine',
         properties: {
         },
-        moduleDidLoad:moduleDidLoad
+        moduleDidLoad:function() {
+
+            moduleDidLoad(this);
+        },
+        receivedEvent:receivedEvent,
     });
 })();

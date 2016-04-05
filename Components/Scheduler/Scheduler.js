@@ -1,34 +1,31 @@
 /* exported Scheduler */
 
-function Scheduler(eventCallback) {
+function Scheduler(eventCallback, tickCallback) {
 
-    const events = new Events();
-    const lookAheadTimeSeconds = 0.1;
-    let absoluteTimeSeconds = 0;
+    "use strict";
 
-    this.tick = function (absoluteTimeSecondsInput) {
+    const defaultBPM = 120;
+    const defaultStartTime = {bar:0, beat:0, sixteenth:0, totalSixteenths:0};
+    const defaultEndTime = {bar:1, beat:0, sixteenth:0, totalSixteenths:16};
+    const defaultTimeRange = {start:defaultStartTime, end:defaultEndTime};
+    const timer = new Timer();
+    this.isPlaying = false;
 
-        absoluteTimeSeconds = absoluteTimeSecondsInput;
-        //console.log("%f", absoluteTimeSeconds);
-        queryEvents();
+    const clip = new NewClip(defaultBPM, defaultTimeRange, eventCallback);
+
+    timer.pushTickCallback(clip.tick);
+
+    clip.addEvent(0, {note:0, length:1/16});
+
+    this.play = function() {
+
+        clip.play();
+        this.isPlaying = true;
     };
 
-    function queryEvents() {
+    this.stop = function() {
 
-        const currentEvents = events.getEvents(absoluteTimeSeconds + lookAheadTimeSeconds);
-
-        if (currentEvents.length === 0) return;
-
-        const delayTime = (currentEvents[0].time - absoluteTimeSeconds) * 1000;
-
-        for (let i = 0; i < currentEvents.length; ++i) {
-
-            eventCallback(currentEvents[i].time - absoluteTimeSeconds);
-        }
-    }
-
-    this.addEvent = function(time, event) {
-
-        events.insert(time, event);
+        clip.stop();
+        this.isPlaying = false;
     };
 }

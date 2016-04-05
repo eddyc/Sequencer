@@ -1,7 +1,7 @@
 (function () {
 
     "use strict";
-    function initialise() {
+    function initialise(noteAddedCallback) {
 
         const self = this;
         const horizontalZoomBounds = {offsetX:100, height:40};
@@ -24,12 +24,17 @@
 
         const interaction = new Interaction(self.$.TransformState, horizontalZoomBounds,  self.$.Pianoroll, onInteraction, onDoubleClick, onMouseMove, octaveBounds, defaultTimeRange);
 
-        const noteLayer = new NoteLayer(self.$.NoteLayerMask, self.$.NoteLayerGroup, horizontalZoomBounds, self.$.Pianoroll);
+        const noteLayer = new NoteLayer(self.$.NoteLayerMask, self.$.NoteLayerGroup, horizontalZoomBounds, self.$.Pianoroll, noteAddedCallback, octaveBounds, defaultTimeRange);
+        const playheadLayer = new PlayheadLayer(self.$.PlayheadLayerMask, self.$.PlayheadLayerGroup, horizontalZoomBounds, self.$.Pianoroll);
+
+        self.tick = playheadLayer.tick;
 
         self.setSize = function() {
 
             timeAxis.setSize();
             interaction.setSize();
+            noteLayer.setSize();
+            playheadLayer.setSize();
             frequencyAxis.rescale();
         };
 
@@ -38,15 +43,20 @@
             timeAxis.setTimeProperties(timeSignature);
         }
 
+        let timeRangeChangedCallback;
+
         function timeRangeChanged(timeRange) {
 
             interaction.setTimeRange(timeRange);
+            timeRangeChangedCallback(timeRange);
         }
 
         function onInteraction(matrix) {
 
             timeAxis.transform(matrix);
             frequencyAxis.transform(matrix);
+            noteLayer.transform(matrix);
+            playheadLayer.transform(matrix);
         }
 
         function onDoubleClick(position) {
@@ -61,13 +71,16 @@
 
             frequencyAxis.onMouseMove(position);
 
-            if (isNoteRect) {
-
-                timeAxis.onMouseMove(position);
-            }
         }
 
+        self.setTimeRangeChangedCallback = function(callback) {
+
+            timeRangeChangedCallback = callback;
+            callback(defaultTimeRange);
+        };
+
         self.setSize();
+
     }
 
     Polymer({
@@ -78,6 +91,5 @@
             height:Number
         },
         initialise:initialise,
-
     });
 })();

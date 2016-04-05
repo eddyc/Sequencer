@@ -19,8 +19,8 @@ function TimeAxis(mask, element, horizontalZoomBounds, svgParent, defaultTimeSig
     const axisLineY = horizontalZoomBounds.height - axisLineHeight;
     const axisLine = createSVGElement('rect', {height:axisLineHeight, y:axisLineY, fill:'black'});
     element.appendChild(axisLine);
-
-    const unityZoomTickWidth = (svgParent.clientWidth - horizontalZoomBounds.offsetX) / (defaultTimeRange.end.totalSixteenths - defaultTimeRange.start.totalSixteenths);
+    const normalisedTimeWidth = svgParent.clientWidth - horizontalZoomBounds.offsetX;
+    const unityZoomTickWidth = normalisedTimeWidth / (defaultTimeRange.end.totalSixteenths - defaultTimeRange.start.totalSixteenths);
 
     let offsetX = 0;
     let zoomX = 1;
@@ -61,13 +61,11 @@ function TimeAxis(mask, element, horizontalZoomBounds, svgParent, defaultTimeSig
         zoomX = matrix.a;
         offsetX = matrix.e;
 
-
         const calculated = calculateTickCount();
 
         adjustTickCount(calculated.tickCount);
 
         setTickPositions(calculated.tickSpacing, calculated.quantisedZoom);
-
     };
 
     function getQuantisedZoom() {
@@ -267,8 +265,9 @@ function TimeAxis(mask, element, horizontalZoomBounds, svgParent, defaultTimeSig
 
     this.onMouseMove = function(position) {
 
-        const width = (svgParent.clientWidth - horizontalZoomBounds.offsetX) * zoomX;
-        const time = (-offsetX + position.x - horizontalZoomBounds.offsetX) / width;
+        const positionX = position.x - horizontalZoomBounds.offsetX;
+        const width = normalisedTimeWidth * zoomX;
+        const time = (-offsetX + positionX) / width;
 
         return time;
     };
