@@ -6,7 +6,6 @@ function NewClip(defaultBPM, defaultTimeRange, eventCallback) {
     const self = this;
     const eventList = new EventList();
 
-    eventList.insert(0, {name:"stuff"});
 
     const clipLengthSeconds = defaultBPM / 60;
     const lookAheadTimeSeconds = 0.2;
@@ -113,6 +112,10 @@ function NewClip(defaultBPM, defaultTimeRange, eventCallback) {
             eventCallback(eventTimeRatio, events[i]);
         }
     }
-    this.addEvent = function(){};
+    this.addEvent = function(time, event){
+
+
+        eventList.insert(time, event);
+    };
 
 }

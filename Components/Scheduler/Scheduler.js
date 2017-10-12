@@ -15,7 +15,8 @@ function Scheduler(eventCallback, tickCallback) {
 
     timer.pushTickCallback(clip.tick);
 
-    clip.addEvent(0, {note:0, length:1/16});
+    clip.addEvent(0, {name:"stuff"});
+    clip.addEvent(0.5, {name:"stuff"});
 
     this.play = function() {
 
